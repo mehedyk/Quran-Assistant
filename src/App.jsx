@@ -10,37 +10,123 @@ const TRANSLATION_EN = 131;  // Dr. Mustafa Khattab
 const TRANSLATION_BN = 161;  // Muhiuddin Khan
 
 // ════════════════════════════════════════════════════════════════
-// BENGALI → TRANSLITERATION MAP
-// quran.com searches Arabic text + English only.
-// Bengali script returns 0 results — we auto-convert common words.
+// SEARCH WORD MAP
+// quran.com searches Arabic text. We map common English/Bengali
+// words to their Arabic equivalents for accurate results.
 // ════════════════════════════════════════════════════════════════
-const BN_TO_LATIN = {
-  "সবর":"sabr","সালাত":"salat","নামাজ":"salah","জান্নাত":"jannah",
-  "জাহান্নাম":"jahannam","তাকওয়া":"taqwa","ইলম":"ilm","দুয়া":"dua",
-  "জিহাদ":"jihad","রহমত":"rahma","শুকর":"shukr","তাওবা":"tawba",
-  "হেদায়াত":"hidayah","ঈমান":"iman","কুফর":"kufr","শিরক":"shirk",
-  "জাকাত":"zakat","হজ":"hajj","সিয়াম":"siyam","রোজা":"sawm",
-  "কুরআন":"quran","সুন্নাহ":"sunnah","ফিরআউন":"pharaoh",
-  "মুসা":"musa","ঈসা":"isa","ইবরাহিম":"ibrahim","মুহাম্মদ":"muhammad",
-  "আল্লাহ":"allah","রাসূল":"rasul","নবী":"prophet","মালাইকা":"angels",
-  "কিয়ামত":"qiyamah","আখিরাত":"akhirah","দুনিয়া":"dunya",
-  "জুলুম":"zulm","আদল":"adl","ফাসাদ":"fasad","ইসলাম":"islam",
-  "ফেরেশতা":"angels","শয়তান":"shaytan","ইবলিস":"iblis",
-  "ধৈর্য":"sabr","ক্ষমা":"forgiveness","দয়া":"mercy","ন্যায়":"justice",
+const WORD_TO_ARABIC = {
+  // English → Arabic
+  "sabr": "صبر", "patience": "صبر", "steadfastness": "صبر",
+  "salah": "صلاة", "salat": "صلاة", "prayer": "صلاة",
+  "zakat": "زكاة", "zakah": "زكاة",
+  "hajj": "حج",
+  "sawm": "صوم", "fasting": "صوم", "siyam": "صيام",
+  "jannah": "جنة", "paradise": "جنة", "heaven": "جنة",
+  "jahannam": "جهنم", "hell": "جهنم", "hellfire": "جهنم",
+  "taqwa": "تقوى", "piety": "تقوى", "god-consciousness": "تقوى",
+  "ilm": "علم", "knowledge": "علم",
+  "dua": "دعاء", "supplication": "دعاء",
+  "jihad": "جهاد",
+  "rahma": "رحمة", "mercy": "رحمة", "compassion": "رحمة",
+  "shukr": "شكر", "gratitude": "شكر", "thankfulness": "شكر",
+  "tawba": "توبة", "repentance": "توبة",
+  "hidayah": "هداية", "guidance": "هداية",
+  "iman": "إيمان", "faith": "إيمان", "belief": "إيمان",
+  "kufr": "كفر", "disbelief": "كفر",
+  "shirk": "شرك",
+  "allah": "الله",
+  "rasul": "رسول", "messenger": "رسول",
+  "prophet": "نبي", "nabi": "نبي",
+  "angels": "ملائكة", "malaika": "ملائكة",
+  "qiyamah": "قيامة", "judgment day": "قيامة", "day of judgment": "قيامة",
+  "akhirah": "آخرة", "hereafter": "آخرة",
+  "dunya": "دنيا", "world": "دنيا", "worldly life": "دنيا",
+  "zulm": "ظلم", "oppression": "ظلم", "injustice": "ظلم",
+  "adl": "عدل", "justice": "عدل",
+  "fasad": "فساد", "corruption": "فساد",
+  "shaytan": "شيطان", "satan": "شيطان", "devil": "شيطان",
+  "iblis": "إبليس",
+  "musa": "موسى", "moses": "موسى",
+  "isa": "عيسى", "jesus": "عيسى",
+  "ibrahim": "إبراهيم", "abraham": "إبراهيم",
+  "muhammad": "محمد",
+  "nuh": "نوح", "noah": "نوح",
+  "yusuf": "يوسف", "joseph": "يوسف",
+  "dawud": "داود", "david": "داود",
+  "sulayman": "سليمان", "solomon": "سليمان",
+  "maryam": "مريم", "mary": "مريم",
+  "love": "حب", "hubb": "حب",
+  "fear": "خوف", "khawf": "خوف",
+  "hope": "رجاء", "raja": "رجاء",
+  "truth": "حق", "haqq": "حق",
+  "falsehood": "باطل", "batil": "باطل",
+  "water": "ماء", "ma": "ماء",
+  "light": "نور", "noor": "نور",
+  "darkness": "ظلمة", "zulma": "ظلمة",
+  "heart": "قلب", "qalb": "قلب",
+  "soul": "نفس", "nafs": "نفس",
+  "riba": "ربا", "usury": "ربا", "interest": "ربا",
+  "halal": "حلال",
+  "haram": "حرام",
+  // Bengali → Arabic
+  "সবর": "صبر", "ধৈর্য": "صبر",
+  "সালাত": "صلاة", "নামাজ": "صلاة",
+  "জাকাত": "زكاة",
+  "হজ": "حج",
+  "রোজা": "صوم", "সিয়াম": "صيام",
+  "জান্নাত": "جنة",
+  "জাহান্নাম": "جهنم",
+  "তাকওয়া": "تقوى",
+  "ইলম": "علم", "জ্ঞান": "علم",
+  "দুয়া": "دعاء",
+  "জিহাদ": "جهاد",
+  "রহমত": "رحمة", "দয়া": "رحمة",
+  "শুকর": "شكر", "কৃতজ্ঞতা": "شكر",
+  "তাওবা": "توبة",
+  "হেদায়াত": "هداية",
+  "ঈমান": "إيمان",
+  "কুফর": "كفر",
+  "শিরক": "شرك",
+  "আল্লাহ": "الله",
+  "ফেরেশতা": "ملائكة",
+  "কিয়ামত": "قيامة",
+  "আখিরাত": "آخرة",
+  "দুনিয়া": "دنيا",
+  "জুলুম": "ظلم", "অত্যাচার": "ظلم",
+  "ন্যায়": "عدل",
+  "ফাসাদ": "فساد", "দুর্নীতি": "فساد",
+  "শয়তান": "شيطان",
+  "মুসা": "موسى",
+  "ঈসা": "عيسى",
+  "ইবরাহিম": "إبراهيم",
+  "মুহাম্মদ": "محمد",
+  "নূহ": "نوح",
+  "ইউসুফ": "يوسف",
+  "দাউদ": "داود",
+  "সুলায়মান": "سليمان",
+  "মারিয়াম": "مريم",
+  "ভালোবাসা": "حب",
+  "ভয়": "خوف",
+  "আশা": "رجاء",
+  "সত্য": "حق",
+  "আলো": "نور",
+  "হৃদয": "قلب", "অন্তর": "قلب",
+  "আত্মা": "نفس",
+  "সুদ": "ربا",
 };
 
 function resolveQuery(query) {
-  const t = query.trim();
-  const isBengali = /[\u0980-\u09FF]/.test(t);
-  if (isBengali) {
-    const mapped = BN_TO_LATIN[t];
-    return { resolved: mapped || t, transliterated: !!mapped, originalBengali: t };
-  }
-  return { resolved: t, transliterated: false, originalBengali: null };
+  const t = query.trim().toLowerCase();
+  const arabic = WORD_TO_ARABIC[t] || WORD_TO_ARABIC[query.trim()];
+  if (arabic) return { resolved: arabic, mapped: true, original: query.trim() };
+  // If already Arabic script, use directly
+  if (/[\u0600-\u06FF]/.test(query)) return { resolved: query.trim(), mapped: false, original: query.trim() };
+  // Fallback — use as-is (may return 0 results)
+  return { resolved: query.trim(), mapped: false, original: query.trim() };
 }
 
 // ════════════════════════════════════════════════════════════════
-// FACTUAL Q&A SYSTEM PROMPT — AI is a dictionary, not a scholar
+// FACTUAL Q&A SYSTEM PROMPT
 // ════════════════════════════════════════════════════════════════
 const FACTUAL_SYSTEM = `You are a Quran reference assistant with very strict limits.
 
@@ -74,14 +160,14 @@ IF ALLOWED:
 You are a dictionary and index, not a scholar.`;
 
 // ════════════════════════════════════════════════════════════════
-// ANTHROPIC PROXY — calls /api/ask (Vercel serverless fn)
+// ANTHROPIC PROXY — /api/ask serverless function
 // ════════════════════════════════════════════════════════════════
 async function callAI(system, userContent, maxTokens = 300) {
   const response = await fetch("/api/ask", {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model:      "claude-sonnet-4-20250514",
+      model:      "claude-sonnet-4-5-20250929",
       max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: userContent }],
@@ -122,29 +208,23 @@ async function fetchSurahMeta(num) {
 }
 
 async function searchByWord(query) {
-  const { resolved, transliterated, originalBengali } = resolveQuery(query);
+  const { resolved, mapped, original } = resolveQuery(query);
   const res = await fetch(
     `${QURAN_API}/search?q=${encodeURIComponent(resolved)}&size=50&language=en&translations=${TRANSLATION_EN}`
   );
   if (!res.ok) throw new Error("Search failed");
   const data  = await res.json();
   const items = data?.search?.results || [];
-
   const grouped = {};
   for (const r of items) {
     const [s] = r.verse_key.split(":").map(Number);
     if (!grouped[s]) grouped[s] = { surah: s, ayat: [] };
-    grouped[s].ayat.push({
-      key:     r.verse_key,
-      arabic:  r.text,
-      english: r.translations?.[0]?.text || null,
-    });
+    grouped[s].ayat.push({ key: r.verse_key, arabic: r.text, english: r.translations?.[0]?.text || null });
   }
   return {
-    query,
+    query: original,
     resolvedQuery: resolved,
-    transliterated,
-    originalBengali,
+    mapped,
     groups: Object.values(grouped).sort((a, b) => a.surah - b.surah),
     total:  items.length,
   };
@@ -192,6 +272,52 @@ function stripHtml(html) {
 }
 
 // ════════════════════════════════════════════════════════════════
+// VOICE SEARCH HOOK
+// ════════════════════════════════════════════════════════════════
+function useVoiceSearch(onResult) {
+  const [listening, setListening] = useState(false);
+  const [supported, setSupported] = useState(false);
+  const recogRef = useRef(null);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setSupported(true);
+      const recog = new SpeechRecognition();
+      recog.continuous    = false;
+      recog.interimResults = false;
+      recog.lang          = "en-US"; // primary; user can switch to bn-BD
+      recog.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        // Fix common spoken patterns: "two colon two fifty five" → "2:255"
+        const fixed = transcript
+          .replace(/(\d+)\s*colon\s*(\d+)/i, "$1:$2")
+          .replace(/surah\s+(\w+)/i, (_, w) => `Surah ${w}`)
+          .replace(/^search\s+/i, "search: ");
+        onResult(fixed.trim());
+        setListening(false);
+      };
+      recog.onerror = () => setListening(false);
+      recog.onend   = () => setListening(false);
+      recogRef.current = recog;
+    }
+  }, []);
+
+  function toggle() {
+    if (!supported || !recogRef.current) return;
+    if (listening) {
+      recogRef.current.stop();
+      setListening(false);
+    } else {
+      recogRef.current.start();
+      setListening(true);
+    }
+  }
+
+  return { listening, supported, toggle };
+}
+
+// ════════════════════════════════════════════════════════════════
 // APP
 // ════════════════════════════════════════════════════════════════
 export default function App() {
@@ -199,6 +325,10 @@ export default function App() {
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(false);
   const bottomRef               = useRef(null);
+
+  const { listening, supported: voiceSupported, toggle: toggleVoice } = useVoiceSearch((text) => {
+    setInput(text);
+  });
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -248,7 +378,7 @@ export default function App() {
     }
   }
 
-  const CHIPS = ["2:255", "25:27", "Surah 36", "search: patience", "search: সবর", "What are the prayer times?"];
+  const CHIPS = ["2:255", "25:27", "Surah 36", "search: patience", "search: سبر", "What are the prayer times?"];
 
   return (
     <>
@@ -283,7 +413,7 @@ export default function App() {
         <div className="mode-hints">
           <span className="hint">2:255 → ayah</span>
           <span className="hint">Surah 18 → chapter</span>
-          <span className="hint">search: sabr → word search</span>
+          <span className="hint">search: patience → word search</span>
           <span className="hint">what / when / which → factual only</span>
         </div>
         <div className="chips">
@@ -297,13 +427,23 @@ export default function App() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-            placeholder='2:255  ·  Surah 18  ·  search: sabr  ·  "What are the 5 pillars?"'
+            placeholder='2:255  ·  Surah 18  ·  search: patience  ·  "What are the 5 pillars?"'
             rows={1}
           />
+          {voiceSupported && (
+            <button
+              className={`voice-btn ${listening ? "listening" : ""}`}
+              onClick={toggleVoice}
+              title={listening ? "Stop listening" : "Voice search"}
+            >
+              {listening ? "🔴" : "🎙️"}
+            </button>
+          )}
           <button className="send-btn" onClick={handleSubmit} disabled={loading || !input.trim()}>
             {loading ? "⏳" : "➤"}
           </button>
         </div>
+        {listening && <div className="voice-hint">Listening… speak now</div>}
       </div>
     </>
   );
@@ -330,8 +470,9 @@ function Bubble({ msg }) {
         <div className="mode-list">
           <div className="mode-item"><span className="tag">📖 AYAH</span><span>Type <code>2:255</code> — Arabic, English, Bengali &amp; tafsir.</span></div>
           <div className="mode-item"><span className="tag">📚 SURAH</span><span>Type <code>Surah 36</code> — chapter facts.</span></div>
-          <div className="mode-item"><span className="tag">🔍 SEARCH</span><span>Type <code>search: sabr</code> or <code>search: সবর</code> — every ayah with that word, by surah.</span></div>
+          <div className="mode-item"><span className="tag">🔍 SEARCH</span><span>Type <code>search: patience</code> or <code>search: সবর</code> — every ayah with that word.</span></div>
           <div className="mode-item"><span className="tag">❓ FACTUAL</span><span>Ask <em>what, when, which, who</em> — factual only. "Why" and interpretive questions are refused.</span></div>
+          <div className="mode-item"><span className="tag">🎙️ VOICE</span><span>Tap the microphone and speak your query.</span></div>
         </div>
         <div className="warn-box">⚠️ This tool shows verified data only. For understanding and meaning, always consult a qualified scholar and verified tafsir.</div>
       </div>
@@ -398,10 +539,7 @@ function Bubble({ msg }) {
           <div className="surah-name-ar">{c.name_arabic}</div>
           <table className="info-table"><tbody>
             {rows.map(([label, val]) => (
-              <tr key={label}>
-                <td className="info-label">{label}</td>
-                <td className="info-val">{val}</td>
-              </tr>
+              <tr key={label}><td className="info-label">{label}</td><td className="info-val">{val}</td></tr>
             ))}
           </tbody></table>
           <div className="warn-box">ℹ️ For deeper understanding, consult verified tafsir sources.</div>
@@ -411,21 +549,19 @@ function Bubble({ msg }) {
   }
 
   if (msg.msgType === "search") {
-    const { query, resolvedQuery, transliterated, groups, total } = msg.data;
+    const { query, resolvedQuery, mapped, groups, total } = msg.data;
     return (
       <div className="msg">
         <div className="avatar ai">📖</div>
         <div className="bubble ai">
           <div className="section-label green">
-            🔍 &ldquo;{query}&rdquo;{transliterated ? ` → "${resolvedQuery}"` : ""} — {total} result{total !== 1 ? "s" : ""} in {groups.length} surah{groups.length !== 1 ? "s" : ""}
+            🔍 &ldquo;{query}&rdquo;{mapped ? ` → ${resolvedQuery}` : ""} — {total} result{total !== 1 ? "s" : ""} in {groups.length} surah{groups.length !== 1 ? "s" : ""}
           </div>
-          {transliterated && (
-            <div className="transliteration-note">
-              ℹ️ Bengali script auto-converted to <strong>{resolvedQuery}</strong> for search.
-            </div>
+          {mapped && (
+            <div className="transliteration-note">ℹ️ Searched Arabic: <strong>{resolvedQuery}</strong></div>
           )}
           {groups.length === 0 && (
-            <p className="no-results">No ayat found. Try English spelling — e.g. <code>search: sabr</code>, <code>search: patience</code></p>
+            <p className="no-results">No ayat found. Try: <code>search: patience</code>, <code>search: mercy</code>, <code>search: justice</code></p>
           )}
           {groups.map(g => (
             <div key={g.surah} className="search-group">
@@ -505,7 +641,7 @@ const CSS = `
   .warn-box { font-size: 0.74rem; color: var(--warn); background: var(--warn-bg); border: 1px solid rgba(146,64,14,0.18); border-radius: 5px; padding: 7px 11px; margin-top: 10px; }
   .transliteration-note { font-size: 0.76rem; color: var(--green2); background: rgba(45,90,61,0.06); border: 1px solid rgba(45,90,61,0.15); border-radius: 5px; padding: 6px 10px; margin-bottom: 10px; }
   .no-results { color: #6b7280; font-style: italic; padding: 8px 0; font-size: 0.84rem; }
-  .no-results code { font-family: 'JetBrains Mono', monospace; background: rgba(200,150,62,0.12); padding: 1px 5px; border-radius: 3px; font-size: 0.79rem; }
+  .no-results code { font-family: 'JetBrains Mono', monospace; background: rgba(200,150,62,0.12); padding: 1px 5px; border-radius: 3px; }
 
   .section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
   .section-label.gold { color: var(--gold); }
@@ -552,6 +688,12 @@ const CSS = `
   .input-box { flex: 1; font-family: 'Lora', serif; font-size: 0.88rem; padding: 11px 15px; border: 1.5px solid var(--border); border-radius: 12px; background: white; color: var(--ink); outline: none; resize: none; min-height: 46px; max-height: 120px; transition: border-color 0.18s; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
   .input-box:focus { border-color: var(--gold); }
   .input-box::placeholder { color: #aaa; font-style: italic; font-size: 0.78rem; }
+  .voice-btn { width: 46px; height: 46px; border-radius: 12px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-size: 18px; display: grid; place-items: center; transition: all 0.14s; flex-shrink: 0; }
+  .voice-btn:hover { border-color: var(--gold); background: rgba(200,150,62,0.06); }
+  .voice-btn.listening { border-color: #ef4444; background: #fff5f5; animation: pulse-red 1s infinite; }
+  @keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.3)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+  .voice-hint { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #ef4444; text-align: center; margin-top: 6px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
   .send-btn { width: 46px; height: 46px; border-radius: 12px; border: none; background: var(--green); color: white; cursor: pointer; font-size: 17px; display: grid; place-items: center; transition: all 0.14s; box-shadow: 0 2px 9px rgba(45,90,61,0.28); flex-shrink: 0; }
   .send-btn:hover:not(:disabled) { background: var(--green2); transform: translateY(-1px); }
   .send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
