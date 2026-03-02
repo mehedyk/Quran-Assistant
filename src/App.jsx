@@ -4,35 +4,43 @@ import { useState, useEffect, useRef } from "react";
 // CONSTANTS
 // ════════════════════════════════════════════════════════════════
 const QURAN_API      = "https://api.quran.com/api/v4";
-const TAFSIR_BN      = 165;  // Tafsir Ahsanul Bayaan (Bengali) — concise, for common readers
-const TAFSIR_EN      = 169;  // Tafsir Ibn Kathir (English)     — fallback only
-const TRANSLATION_EN = 131;  // Dr. Mustafa Khattab — The Clear Quran
-const TRANSLATION_BN = 161;  // Muhiuddin Khan (Bengali)
+const TAFSIR_BN      = 165;  // Tafsir Ahsanul Bayaan (Bengali)
+const TAFSIR_EN      = 169;  // Tafsir Ibn Kathir (English) — fallback
+const TRANSLATION_EN = 131;  // Dr. Mustafa Khattab
+const TRANSLATION_BN = 161;  // Muhiuddin Khan
 
 // ════════════════════════════════════════════════════════════════
-// ANTHROPIC PROXY — calls /api/ask (our Vercel serverless fn)
-// The API key lives on the server. Never in the browser.
+// BENGALI → TRANSLITERATION MAP
+// quran.com searches Arabic text + English only.
+// Bengali script returns 0 results — we auto-convert common words.
 // ════════════════════════════════════════════════════════════════
-async function callAI(system, userContent, maxTokens = 300) {
-  const response = await fetch("/api/ask", {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model:      "claude-sonnet-4-20250514",
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: userContent }],
-    }),
-  });
+const BN_TO_LATIN = {
+  "সবর":"sabr","সালাত":"salat","নামাজ":"salah","জান্নাত":"jannah",
+  "জাহান্নাম":"jahannam","তাকওয়া":"taqwa","ইলম":"ilm","দুয়া":"dua",
+  "জিহাদ":"jihad","রহমত":"rahma","শুকর":"shukr","তাওবা":"tawba",
+  "হেদায়াত":"hidayah","ঈমান":"iman","কুফর":"kufr","শিরক":"shirk",
+  "জাকাত":"zakat","হজ":"hajj","সিয়াম":"siyam","রোজা":"sawm",
+  "কুরআন":"quran","সুন্নাহ":"sunnah","ফিরআউন":"pharaoh",
+  "মুসা":"musa","ঈসা":"isa","ইবরাহিম":"ibrahim","মুহাম্মদ":"muhammad",
+  "আল্লাহ":"allah","রাসূল":"rasul","নবী":"prophet","মালাইকা":"angels",
+  "কিয়ামত":"qiyamah","আখিরাত":"akhirah","দুনিয়া":"dunya",
+  "জুলুম":"zulm","আদল":"adl","ফাসাদ":"fasad","ইসলাম":"islam",
+  "ফেরেশতা":"angels","শয়তান":"shaytan","ইবলিস":"iblis",
+  "ধৈর্য":"sabr","ক্ষমা":"forgiveness","দয়া":"mercy","ন্যায়":"justice",
+};
 
-  if (!response.ok) throw new Error(`AI proxy error: ${response.status}`);
-  const data = await response.json();
-  return data.content?.[0]?.text || null;
+function resolveQuery(query) {
+  const t = query.trim();
+  const isBengali = /[\u0980-\u09FF]/.test(t);
+  if (isBengali) {
+    const mapped = BN_TO_LATIN[t];
+    return { resolved: mapped || t, transliterated: !!mapped, originalBengali: t };
+  }
+  return { resolved: t, transliterated: false, originalBengali: null };
 }
 
 // ════════════════════════════════════════════════════════════════
-// FACTUAL Q&A SYSTEM PROMPT
-// AI is a dictionary/index only. Not a scholar. Not an interpreter.
+// FACTUAL Q&A SYSTEM PROMPT — AI is a dictionary, not a scholar
 // ════════════════════════════════════════════════════════════════
 const FACTUAL_SYSTEM = `You are a Quran reference assistant with very strict limits.
 
@@ -48,10 +56,10 @@ ALLOWED — answer ONLY these types of questions:
 
 FORBIDDEN — refuse ALL of these:
 - Any question starting with or implying "why"
-- Any conceptual or interpretive question ("what does Islam say about X")
-- Any question asking for rulings (halal/haram), fatwa, or ijtihad
-- Any question requiring synthesis of multiple ayat into a conclusion
-- Any question where the answer requires scholarly opinion
+- Any conceptual or interpretive question
+- Any question asking for rulings, fatwa, or ijtihad
+- Any question requiring synthesis of multiple ayat
+- Any question requiring scholarly opinion
 
 IF FORBIDDEN, respond with exactly:
 "This question requires scholarly interpretation which is beyond the scope of this reference tool. Please consult a qualified Islamic scholar or verified tafsir. You can search for specific words using: search: [word]"
@@ -66,9 +74,27 @@ IF ALLOWED:
 You are a dictionary and index, not a scholar.`;
 
 // ════════════════════════════════════════════════════════════════
-// QURAN API FUNCTIONS — no AI involved, pure verified data
+// ANTHROPIC PROXY — calls /api/ask (Vercel serverless fn)
 // ════════════════════════════════════════════════════════════════
+async function callAI(system, userContent, maxTokens = 300) {
+  const response = await fetch("/api/ask", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model:      "claude-sonnet-4-20250514",
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: userContent }],
+    }),
+  });
+  if (!response.ok) throw new Error(`AI proxy error: ${response.status}`);
+  const data = await response.json();
+  return data.content?.[0]?.text || null;
+}
 
+// ════════════════════════════════════════════════════════════════
+// QURAN API FUNCTIONS
+// ════════════════════════════════════════════════════════════════
 async function fetchAyah(surah, ayah) {
   const [arabic, english, bengali, tafsirBn, tafsirEn] = await Promise.all([
     fetch(`${QURAN_API}/verses/by_key/${surah}:${ayah}?words=true&fields=text_uthmani`).then(r => r.json()),
@@ -77,10 +103,9 @@ async function fetchAyah(surah, ayah) {
     fetch(`${QURAN_API}/tafsirs/${TAFSIR_BN}/by_ayah/${surah}:${ayah}`).then(r => r.json()).catch(() => null),
     fetch(`${QURAN_API}/tafsirs/${TAFSIR_EN}/by_ayah/${surah}:${ayah}`).then(r => r.json()).catch(() => null),
   ]);
-
   const tafsirText = tafsirBn?.tafsir?.text || tafsirEn?.tafsir?.text || null;
   return {
-    arabic:     arabic?.verse?.text_uthmani     || null,
+    arabic:     arabic?.verse?.text_uthmani || null,
     english:    english?.verse?.translations?.[0]?.text || null,
     bengali:    bengali?.verse?.translations?.[0]?.text || null,
     tafsir:     tafsirText,
@@ -97,17 +122,17 @@ async function fetchSurahMeta(num) {
 }
 
 async function searchByWord(query) {
+  const { resolved, transliterated, originalBengali } = resolveQuery(query);
   const res = await fetch(
-    `${QURAN_API}/search?q=${encodeURIComponent(query)}&size=50&language=en&translations=${TRANSLATION_EN}`
+    `${QURAN_API}/search?q=${encodeURIComponent(resolved)}&size=50&language=en&translations=${TRANSLATION_EN}`
   );
   if (!res.ok) throw new Error("Search failed");
   const data  = await res.json();
   const items = data?.search?.results || [];
 
-  // Group by surah
   const grouped = {};
   for (const r of items) {
-    const [s, a] = r.verse_key.split(":").map(Number);
+    const [s] = r.verse_key.split(":").map(Number);
     if (!grouped[s]) grouped[s] = { surah: s, ayat: [] };
     grouped[s].ayat.push({
       key:     r.verse_key,
@@ -117,14 +142,15 @@ async function searchByWord(query) {
   }
   return {
     query,
+    resolvedQuery: resolved,
+    transliterated,
+    originalBengali,
     groups: Object.values(grouped).sort((a, b) => a.surah - b.surah),
     total:  items.length,
   };
 }
 
-// ════════════════════════════════════════════════════════════════
-// SURAH NAME CACHE — so search results show names not just numbers
-// ════════════════════════════════════════════════════════════════
+// Surah name cache
 const nameCache = {};
 async function getSurahName(num) {
   if (nameCache[num]) return nameCache[num];
@@ -142,22 +168,14 @@ async function getSurahName(num) {
 // ════════════════════════════════════════════════════════════════
 function parseInput(raw) {
   const s = raw.trim();
-
-  // 2:255 — ayah reference
   if (/^\d{1,3}:\d{1,3}$/.test(s)) {
     const [su, ay] = s.split(":").map(Number);
     return { mode: "ayah", surah: su, ayah: ay };
   }
-
-  // "surah 18" — chapter info
   const surahM = s.match(/^(?:surah|sura|সূরা)\s+(\d+)$/i);
   if (surahM) return { mode: "surah", num: parseInt(surahM[1]) };
-
-  // "search: sabr" — word search
   const searchM = s.match(/^(?:search|find|খোঁজ|খোঁজুন)[:\s]+(.+)$/i);
   if (searchM) return { mode: "search", query: searchM[1].trim() };
-
-  // everything else → factual Q&A with strict AI guardrails
   return { mode: "factual", question: s };
 }
 
@@ -169,12 +187,8 @@ function stripHtml(html) {
   return html
     .replace(/<sup[^>]*>.*?<\/sup>/gi, "")
     .replace(/<[^>]*>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#\d+;/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&#\d+;/g, "").replace(/\s+/g, " ").trim();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -201,17 +215,14 @@ export default function App() {
       const parsed = parseInput(userMsg);
 
       if (parsed.mode === "ayah") {
-        // Pure API fetch — no AI
         const data = await fetchAyah(parsed.surah, parsed.ayah);
         setMessages(prev => [...prev, { role: "assistant", msgType: "ayah", data }]);
 
       } else if (parsed.mode === "surah") {
-        // Pure API fetch — no AI
         const chapter = await fetchSurahMeta(parsed.num);
         setMessages(prev => [...prev, { role: "assistant", msgType: "surah", data: chapter }]);
 
       } else if (parsed.mode === "search") {
-        // Pure API search — no AI
         const result   = await searchByWord(parsed.query);
         const enriched = await Promise.all(
           result.groups.map(async g => ({ ...g, surahName: await getSurahName(g.surah) }))
@@ -219,7 +230,6 @@ export default function App() {
         setMessages(prev => [...prev, { role: "assistant", msgType: "search", data: { ...result, groups: enriched } }]);
 
       } else {
-        // Factual Q&A — AI via secure proxy, strict limits
         const answer = await callAI(FACTUAL_SYSTEM, parsed.question, 300);
         setMessages(prev => [...prev, {
           role: "assistant", msgType: "factual",
@@ -230,8 +240,7 @@ export default function App() {
     } catch (err) {
       console.error(err);
       setMessages(prev => [...prev, {
-        role:    "assistant",
-        msgType: "error",
+        role: "assistant", msgType: "error",
         content: "Could not fetch data. Please check your connection and try again.",
       }]);
     } finally {
@@ -239,13 +248,12 @@ export default function App() {
     }
   }
 
-  const EXAMPLE_CHIPS = ["2:255", "25:27", "Surah 36", "search: patience", "search: সবর", "What are the prayer times?"];
+  const CHIPS = ["2:255", "25:27", "Surah 36", "search: patience", "search: সবর", "What are the prayer times?"];
 
   return (
     <>
       <style>{CSS}</style>
 
-      {/* HEADER */}
       <div className="header">
         <div className="header-top">
           <div className="logo">🕌</div>
@@ -260,7 +268,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* MESSAGES */}
       <div className="messages">
         {messages.map((msg, i) => <Bubble key={i} msg={msg} />)}
         {loading && (
@@ -272,7 +279,6 @@ export default function App() {
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
       <div className="input-area">
         <div className="mode-hints">
           <span className="hint">2:255 → ayah</span>
@@ -281,7 +287,7 @@ export default function App() {
           <span className="hint">what / when / which → factual only</span>
         </div>
         <div className="chips">
-          {EXAMPLE_CHIPS.map(ex => (
+          {CHIPS.map(ex => (
             <button key={ex} className="chip" onClick={() => setInput(ex)}>{ex}</button>
           ))}
         </div>
@@ -304,7 +310,7 @@ export default function App() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// BUBBLE COMPONENT
+// BUBBLE
 // ════════════════════════════════════════════════════════════════
 function Bubble({ msg }) {
 
@@ -322,10 +328,10 @@ function Bubble({ msg }) {
         <div className="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
         <p className="greeting">As-salamu alaykum. This is a Quran Reference tool — not an interpreter.</p>
         <div className="mode-list">
-          <div className="mode-item"><span className="tag green">📖 AYAH</span><span>Type <code>2:255</code> — get Arabic, English, Bengali &amp; tafsir.</span></div>
-          <div className="mode-item"><span className="tag green">📚 SURAH</span><span>Type <code>Surah 36</code> — get chapter facts.</span></div>
-          <div className="mode-item"><span className="tag green">🔍 SEARCH</span><span>Type <code>search: sabr</code> — every ayah with that word, grouped by surah.</span></div>
-          <div className="mode-item"><span className="tag green">❓ FACTUAL</span><span>Ask <em>what, when, which, who</em> — factual only. "Why" and interpretive questions are refused.</span></div>
+          <div className="mode-item"><span className="tag">📖 AYAH</span><span>Type <code>2:255</code> — Arabic, English, Bengali &amp; tafsir.</span></div>
+          <div className="mode-item"><span className="tag">📚 SURAH</span><span>Type <code>Surah 36</code> — chapter facts.</span></div>
+          <div className="mode-item"><span className="tag">🔍 SEARCH</span><span>Type <code>search: sabr</code> or <code>search: সবর</code> — every ayah with that word, by surah.</span></div>
+          <div className="mode-item"><span className="tag">❓ FACTUAL</span><span>Ask <em>what, when, which, who</em> — factual only. "Why" and interpretive questions are refused.</span></div>
         </div>
         <div className="warn-box">⚠️ This tool shows verified data only. For understanding and meaning, always consult a qualified scholar and verified tafsir.</div>
       </div>
@@ -390,16 +396,14 @@ function Bubble({ msg }) {
         <div className="bubble ai">
           <div className="section-label gold">📚 Surah Information</div>
           <div className="surah-name-ar">{c.name_arabic}</div>
-          <table className="info-table">
-            <tbody>
-              {rows.map(([label, val]) => (
-                <tr key={label}>
-                  <td className="info-label">{label}</td>
-                  <td className="info-val">{val}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <table className="info-table"><tbody>
+            {rows.map(([label, val]) => (
+              <tr key={label}>
+                <td className="info-label">{label}</td>
+                <td className="info-val">{val}</td>
+              </tr>
+            ))}
+          </tbody></table>
           <div className="warn-box">ℹ️ For deeper understanding, consult verified tafsir sources.</div>
         </div>
       </div>
@@ -407,15 +411,22 @@ function Bubble({ msg }) {
   }
 
   if (msg.msgType === "search") {
-    const { query, groups, total } = msg.data;
+    const { query, resolvedQuery, transliterated, groups, total } = msg.data;
     return (
       <div className="msg">
         <div className="avatar ai">📖</div>
         <div className="bubble ai">
           <div className="section-label green">
-            🔍 &ldquo;{query}&rdquo; — {total} result{total !== 1 ? "s" : ""} in {groups.length} surah{groups.length !== 1 ? "s" : ""}
+            🔍 &ldquo;{query}&rdquo;{transliterated ? ` → "${resolvedQuery}"` : ""} — {total} result{total !== 1 ? "s" : ""} in {groups.length} surah{groups.length !== 1 ? "s" : ""}
           </div>
-          {groups.length === 0 && <p className="muted" style={{fontStyle:"italic",padding:"8px 0"}}>No ayat found. Try a different word or spelling.</p>}
+          {transliterated && (
+            <div className="transliteration-note">
+              ℹ️ Bengali script auto-converted to <strong>{resolvedQuery}</strong> for search.
+            </div>
+          )}
+          {groups.length === 0 && (
+            <p className="no-results">No ayat found. Try English spelling — e.g. <code>search: sabr</code>, <code>search: patience</code></p>
+          )}
           {groups.map(g => (
             <div key={g.surah} className="search-group">
               <div className="search-group-hdr">
@@ -431,7 +442,7 @@ function Bubble({ msg }) {
               ))}
             </div>
           ))}
-          <div className="warn-box">ℹ️ Read each ayah in its full context. Use the ayah lookup (e.g. 2:255) for translations and tafsir.</div>
+          <div className="warn-box">ℹ️ Read each ayah in its full context. Use ayah lookup (e.g. 2:255) for translations and tafsir.</div>
         </div>
       </div>
     );
@@ -452,26 +463,18 @@ const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --ink:     #1a1209;
-    --parch:   #f5efe0;
-    --gold:    #c8963e;
-    --green:   #2d5a3d;
-    --green2:  #3d7a52;
-    --border:  rgba(200,150,62,0.28);
-    --shadow:  rgba(26,18,9,0.12);
-    --warn:    #92400e;
-    --warn-bg: #fffbeb;
+    --ink: #1a1209; --parch: #f5efe0; --gold: #c8963e;
+    --green: #2d5a3d; --green2: #3d7a52;
+    --border: rgba(200,150,62,0.28); --shadow: rgba(26,18,9,0.12);
+    --warn: #92400e; --warn-bg: #fffbeb;
   }
-
   html, body { height: 100%; }
   body { font-family: 'Lora', Georgia, serif; background: var(--parch); color: var(--ink); min-height: 100vh;
     background-image: radial-gradient(ellipse at 20% 0%, rgba(200,150,62,0.08) 0%, transparent 50%),
                       radial-gradient(ellipse at 80% 100%, rgba(45,90,61,0.06) 0%, transparent 50%); }
   #root { height: 100vh; display: flex; flex-direction: column; max-width: 860px; margin: 0 auto; }
 
-  /* HEADER */
   .header { padding: 16px 26px 14px; border-bottom: 1px solid var(--border); background: rgba(245,239,224,0.97); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); }
   .header-top { display: flex; align-items: center; gap: 13px; }
   .logo { width: 42px; height: 42px; background: var(--green); border-radius: 10px; display: grid; place-items: center; font-size: 20px; box-shadow: 0 2px 10px rgba(45,90,61,0.3); flex-shrink: 0; }
@@ -481,7 +484,6 @@ const CSS = `
   .integrity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green2); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
-  /* MESSAGES */
   .messages { flex: 1; overflow-y: auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .msg { display: flex; gap: 10px; animation: up 0.22s ease; }
   @keyframes up { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
@@ -494,44 +496,35 @@ const CSS = `
   .bubble.user { background: var(--green); color: white; border-bottom-right-radius: 4px; }
   .error-bubble { border-color: #fca5a5 !important; background: #fff5f5 !important; color: #7f1d1d; }
 
-  /* WELCOME */
   .bismillah { font-family: 'UthmanNaskh', serif; font-size: 1.55rem; line-height: 2; text-align: center; color: var(--green); margin-bottom: 10px; direction: rtl; }
   .greeting { font-weight: 600; margin-bottom: 13px; }
   .mode-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 13px; }
   .mode-item { display: flex; gap: 9px; align-items: flex-start; font-size: 0.83rem; }
-  .tag { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; border-radius: 4px; padding: 2px 7px; white-space: nowrap; align-self: center; flex-shrink: 0; color: white; }
-  .tag.green { background: var(--green); }
+  .tag { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; background: var(--green); color: white; border-radius: 4px; padding: 2px 7px; white-space: nowrap; align-self: center; flex-shrink: 0; }
   .mode-item code { font-family: 'JetBrains Mono', monospace; background: rgba(200,150,62,0.12); padding: 1px 5px; border-radius: 3px; font-size: 0.79rem; }
   .warn-box { font-size: 0.74rem; color: var(--warn); background: var(--warn-bg); border: 1px solid rgba(146,64,14,0.18); border-radius: 5px; padding: 7px 11px; margin-top: 10px; }
+  .transliteration-note { font-size: 0.76rem; color: var(--green2); background: rgba(45,90,61,0.06); border: 1px solid rgba(45,90,61,0.15); border-radius: 5px; padding: 6px 10px; margin-bottom: 10px; }
+  .no-results { color: #6b7280; font-style: italic; padding: 8px 0; font-size: 0.84rem; }
+  .no-results code { font-family: 'JetBrains Mono', monospace; background: rgba(200,150,62,0.12); padding: 1px 5px; border-radius: 3px; font-size: 0.79rem; }
 
-  /* SHARED */
   .section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
   .section-label.gold { color: var(--gold); }
   .section-label.green { color: var(--green2); }
-  .muted { color: #9ca3af; font-size: 0.58rem; }
+  .muted { color: #9ca3af; font-size: 0.58rem; text-transform: none; letter-spacing: 0; }
   .divider { height: 1px; background: var(--border); margin: 12px 0; }
 
-  /* ARABIC */
   .arabic { font-family: 'UthmanNaskh', 'Scheherazade New', serif; font-size: 1.82rem; line-height: 2.55; text-align: right; direction: rtl; color: var(--ink); padding: 16px 20px; background: linear-gradient(135deg, rgba(200,150,62,0.05), rgba(45,90,61,0.04)); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 11px; }
-
-  /* TRANSLATIONS */
   .trans-block { background: rgba(45,90,61,0.04); border-left: 3px solid var(--green2); padding: 9px 13px; border-radius: 0 7px 7px 0; margin-bottom: 9px; }
   .trans-label { font-family: 'JetBrains Mono', monospace; font-size: 0.59rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 4px; }
   .bangla { font-size: 0.95rem; line-height: 1.85; }
-
-  /* TAFSIR */
   .tafsir-text { font-size: 0.83rem; line-height: 1.82; color: #374151; font-style: italic; }
-
-  /* AYAH BADGE */
   .ayah-badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; background: var(--gold); color: white; padding: 2px 9px; border-radius: 12px; margin-bottom: 12px; }
 
-  /* SURAH INFO */
   .surah-name-ar { font-family: 'UthmanNaskh', serif; font-size: 1.9rem; line-height: 2; text-align: center; color: var(--green); direction: rtl; margin-bottom: 12px; }
   .info-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   .info-label { padding: 5px 12px 5px 0; color: var(--gold); font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; white-space: nowrap; vertical-align: top; }
   .info-val { padding: 5px 0; font-weight: 500; }
 
-  /* SEARCH */
   .search-group { margin-bottom: 16px; }
   .search-group-hdr { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--green); padding: 4px 0; border-bottom: 1px solid var(--border); margin-bottom: 7px; display: flex; justify-content: space-between; align-items: center; }
   .count-badge { font-size: 0.58rem; color: var(--gold); background: rgba(200,150,62,0.1); padding: 2px 7px; border-radius: 10px; }
@@ -541,17 +534,14 @@ const CSS = `
   .search-ar { font-family: 'UthmanNaskh', serif; font-size: 1.28rem; line-height: 2.1; direction: rtl; text-align: right; color: var(--ink); margin-bottom: 3px; }
   .search-en { font-size: 0.81rem; color: #4b5563; line-height: 1.65; font-style: italic; }
 
-  /* FACTUAL */
   .factual-answer { font-size: 0.9rem; line-height: 1.75; margin-bottom: 8px; }
 
-  /* LOADING */
   .dots { display: flex; gap: 4px; padding: 5px 2px; }
   .dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: dot 1.2s infinite; }
   .dots span:nth-child(2) { animation-delay: 0.2s; }
   .dots span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes dot { 0%,80%,100%{transform:scale(0.8);opacity:0.4} 40%{transform:scale(1.2);opacity:1} }
 
-  /* INPUT */
   .input-area { padding: 12px 16px 18px; border-top: 1px solid var(--border); background: rgba(245,239,224,0.97); }
   .mode-hints { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 7px; }
   .hint { font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: #9ca3af; background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.06); border-radius: 4px; padding: 2px 6px; }
