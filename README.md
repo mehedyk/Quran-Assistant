@@ -2,57 +2,62 @@
 
 <div align="center">
 
-**যাচাইকৃত কুরআন রেফারেন্স · বাংলা · কোনো AI ব্যাখ্যা নেই**
+**যাচাইকৃত কুরআন রেফারেন্স · বাংলা ও ইংরেজি · কোনো AI ব্যাখ্যা নেই**
 
-*Verified Quran Reference · Bengali-first · No AI Interpretation*
+*Verified Quran Reference · Bengali & English · No AI Interpretation*
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black)](https://vercel.com)
+[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev)
 
 </div>
 
 ---
 
-## সংক্ষিপ্ত পরিচয় (About)
+## সংক্ষিপ্ত পরিচয় · About
 
-Hadi is a mobile-first Quran reference application built primarily for Bangladeshi Muslims. It provides verified Quran data — Arabic text, Bengali and English translations, tafsir, word search, and per-ayah audio recitation — without generating any AI interpretation of the Quran.
+Hadi is a mobile-first, bilingual Quran reference application built primarily for Bangladeshi Muslims. It provides verified Quran data — Arabic text, Bengali and English translations, tafsir, word search, and per-ayah audio recitation — without generating any AI interpretation of the Quran.
 
-The guiding principle: **an AI should never interpret the words of Allah**. Hadi is a dictionary and index, not a scholar. For meaning and understanding, users are always directed to qualified scholars and verified tafsir.
+> *"قُلْ إِنَّ صَلَاتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي لِلَّهِ رَبِّ الْعَالَمِينَ"*
+> — সূরা আল-আনআম (৬:১৬২)
 
-> "নিশ্চয়ই আমি কুরআন অবতীর্ণ করেছি এবং আমিই তার রক্ষক।" — সূরা আল-হিজর (১৫:৯)
+**The guiding principle:** an AI should never interpret the words of Allah. Hadi is a dictionary and index — not a scholar. For meaning and understanding, users are always directed to qualified scholars and verified tafsir.
 
 ---
 
-## বৈশিষ্ট্য (Features)
+## বৈশিষ্ট্য · Features
 
-### কোনো AI ব্যাখ্যা নেই (Zero AI Interpretation)
-- আয়াত লুকআপ, সূরা তথ্য, শব্দ অনুসন্ধান — সবই সরাসরি API থেকে যাচাইকৃত ডেটা
-- AI শুধুমাত্র সংকীর্ণ তথ্যভিত্তিক প্রশ্নে ব্যবহৃত হয় (কী, কখন, কোনটি, কে)
-- "কেন" এবং ব্যাখ্যামূলক প্রশ্ন সম্পূর্ণ প্রত্যাখ্যাত
+### ৬টি পেজ · 6 Pages
 
-### ৫টি পেজ
 | পেজ | বিবরণ |
 |-----|--------|
-| 🏠 হোম | আজকের আয়াত, দ্রুত লুকআপ, নেভিগেশন কার্ড |
-| 🔍 অনুসন্ধান | বাংলা/ইংরেজি শব্দ দিয়ে সব আয়াত খুঁজুন |
-| 📖 সূরা | ১১৪টি সূরা ব্রাউজ করুন, সম্পূর্ণ সূরা পড়ুন |
-| ❓ জিজ্ঞাসা | তথ্যভিত্তিক প্রশ্ন শুধুমাত্র |
-| 🔖 সংরক্ষিত | বুকমার্ক করা আয়াত |
+| 🏠 হোম / Home | আজকের আয়াত, দ্রুত লুকআপ, নেভিগেশন |
+| 🔍 অনুসন্ধান / Search | বাংলা ও ইংরেজি শব্দ → আরবি ম্যাপিং → সঠিক ফলাফল |
+| 📖 সূরা / Surahs | ১১৪টি সূরা ব্রাউজ, সম্পূর্ণ সূরা পড়ুন |
+| ❓ জিজ্ঞাসা / Ask | তথ্যভিত্তিক প্রশ্ন — কী, কখন, কোনটি, কে |
+| 🔖 সংরক্ষিত / Saved | বুকমার্ক করা আয়াত |
+| ✨ পরিচয় / About | নিয়ত, দোয়া, ক্রেডিট |
 
-### অন্যান্য বৈশিষ্ট্য
-- **৩টি থিম**: নূর (আলো), লায়ল (রাত), সবজ (সবুজ) — এক বাটনে পরিবর্তন
-- **আজকের আয়াত**: তারিখ-ভিত্তিক, সবার জন্য একই আয়াত
-- **প্রতিটি আয়াতে তিলাওয়াত**: Sheikh Mishary Rashid Al-Afasy-এর কণ্ঠে
-- **শেয়ার কার্ড**: সুন্দর ইমেজ কার্ড তৈরি করে WhatsApp/Facebook-এ শেয়ার করুন
-- **বুকমার্ক**: LocalStorage-এ সংরক্ষণ, কোনো অ্যাকাউন্ট লাগবে না
-- **সাম্প্রতিক অনুসন্ধান**: LocalStorage-এ, দ্রুত পুনরায় অনুসন্ধান
-- **রেফারেন্স লিংক**: প্রতিটি আয়াতে quran.com-এর লিংক — নিজে যাচাই করুন
-- **মোবাইল-ফার্স্ট**: বটম ট্যাব বার, safe area support, সম্পূর্ণ মোবাইল অপ্টিমাইজড
+### মূল বৈশিষ্ট্য · Core Features
+
+- **🌐 দ্বিভাষিক UI** — বাংলা ও ইংরেজি, এক বাটনে পরিবর্তন, পছন্দ সংরক্ষিত
+- **🎨 ৩টি থিম** — নূর (দিন), লায়ল (রাত), সবজ (পাণ্ডুলিপি) — প্রতিটি স্বতন্ত্র
+- **📱 মোবাইল + 💻 ডেস্কটপ** — সত্যিকারের রেসপনসিভ: মোবাইলে বটম ট্যাব বার, ডেস্কটপে সাইডবার
+- **🔍 স্মার্ট শব্দ অনুসন্ধান** — বাংলা/ইংরেজি → আরবি ম্যাপিং (সবর→صبر)
+- **▶ প্রতি আয়াতে তিলাওয়াত** — Sheikh Mishary Rashid Al-Afasy
+- **📤 শেয়ার কার্ড** — সুন্দর ইমেজ কার্ড ডাউনলোড, WhatsApp/Facebook শেয়ার
+- **🔖 বুকমার্ক** — localStorage, কোনো অ্যাকাউন্ট লাগবে না
+- **🕐 সাম্প্রতিক অনুসন্ধান** — localStorage, দ্রুত পুনরায় অনুসন্ধান
+- **📅 আজকের আয়াত** — তারিখ-ভিত্তিক, নিরঙ্কুশ, সবার জন্য একই
+- **🔗 রেফারেন্স লিংক** — প্রতিটি আয়াতে quran.com-এর লিংক
 
 ---
 
-## ডেটা উৎস (Data Sources)
+## ডেটা উৎস · Data Sources
 
 | ডেটা | উৎস | ID |
 |------|------|----|
-| আরবি টেক্সট | Uthmani Script | — |
+| আরবি টেক্সট | Uthmani Script via api.quran.com | — |
 | বাংলা অনুবাদ | মুহিউদ্দীন খান | `161` |
 | ইংরেজি অনুবাদ | Dr. Mustafa Khattab | `131` |
 | বাংলা তাফসীর | তাফসীর আহসানুল বায়ান | `165` |
@@ -62,129 +67,118 @@ The guiding principle: **an AI should never interpret the words of Allah**. Hadi
 
 ---
 
-## প্রযুক্তি (Tech Stack)
+## প্রযুক্তি · Tech Stack
 
 ```
 Frontend:   React 18 + Vite
-Language:   JavaScript (ES Modules)
-Styling:    CSS-in-JS (inline stylesheet)
 Fonts:      Hind Siliguri (Bengali UI)
             Playfair Display (English headings)
             KFGQPC Uthman Taha Naskh (Arabic)
-Storage:    localStorage (bookmarks, recent searches, theme)
-AI:         Anthropic Claude (factual Q&A only, via serverless proxy)
+Storage:    localStorage (bookmarks, searches, theme, language)
+AI:         Anthropic Claude — factual Q&A only, via serverless proxy
 Deploy:     Vercel (frontend + serverless function)
 ```
 
 ---
 
-## AI ব্যবহার নীতি (AI Usage Policy)
+## AI ব্যবহার নীতি · AI Policy
 
 ```
 অনুমোদিত (ALLOWED):
-  ✓ ইসলামের পাঁচ স্তম্ভের নাম
-  ✓ নামাজের ওয়াক্তের নাম
-  ✓ সূরার নাম বা আয়াত সংখ্যা
-  ✓ আরবি শব্দের অর্থ
-  ✓ কোন সূরা কোথায় নাজিল হয়েছে
+  ✓ পাঁচ স্তম্ভের নাম, নামাজের ওয়াক্ত, সূরার তথ্য
+  ✓ আয়াত সংখ্যা, আরবি শব্দের অর্থ, ঐতিহাসিক তথ্য
+  ✓ কী / কখন / কোনটি / কে / কতটি
 
 নিষিদ্ধ (FORBIDDEN):
   ✗ কেন (why) প্রশ্ন
-  ✗ ব্যাখ্যামূলক প্রশ্ন
+  ✗ ব্যাখ্যামূলক বা ধর্মতাত্ত্বিক প্রশ্ন
   ✗ ফতোয়া বা রুলিং
-  ✗ একাধিক আয়াত সংশ্লেষণ
-  ✗ আলেমের মতামত প্রয়োজন এমন প্রশ্ন
+  ✗ আলেমের মতামত প্রয়োজন এমন যেকোনো প্রশ্ন
 ```
 
 ---
 
-## স্থানীয়ভাবে চালানো (Local Development)
+## লোকাল ডেভেলপমেন্ট · Local Development
 
 ```bash
-# ক্লোন করুন
-git clone https://github.com/yourusername/hadi-quran.git
+git clone https://github.com/mehedyk/hadi-quran.git
 cd hadi-quran
-
-# নির্ভরতা ইনস্টল করুন
 npm install
 
-# এনভায়রনমেন্ট ভেরিয়েবল সেট করুন
-cp .env.example .env
-# .env ফাইলে ANTHROPIC_API_KEY যোগ করুন
+# Environment variable
+echo "ANTHROPIC_API_KEY=sk-ant-api03-your-key" > .env
 
-# চালান
 npm run dev
-```
-
-`.env` ফাইল তৈরি করুন:
-```
-ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+# Opens at http://localhost:5173
 ```
 
 ---
 
-## প্রজেক্ট স্ট্রাকচার (Project Structure)
+## প্রজেক্ট স্ট্রাকচার · Project Structure
 
 ```
 hadi-quran/
 ├── api/
-│   └── ask.js              # Vercel serverless function (Anthropic proxy)
+│   └── ask.js              # Vercel serverless proxy (Anthropic)
 ├── src/
-│   ├── App.jsx             # Main app + all pages + components
-│   ├── main.jsx            # React entry point
+│   ├── App.jsx             # All pages + components + CSS
+│   ├── main.jsx            # React entry
 │   ├── hooks/
-│   │   ├── useTheme.js     # Theme management
+│   │   ├── useTheme.js     # 3-theme system with CSS variables
 │   │   └── useAudio.js     # Per-ayah audio playback
 │   └── utils/
-│       ├── constants.js    # Themes, word map, helper functions
-│       ├── api.js          # All API calls (quran.com + Anthropic)
-│       └── storage.js      # localStorage (bookmarks, recent, theme)
+│       ├── constants.js    # Themes, word map, Ayah of Day
+│       ├── api.js          # quran.com + Anthropic calls
+│       └── storage.js      # localStorage abstraction
 ├── index.html
 ├── package.json
 ├── vite.config.js
 ├── vercel.json
 ├── .env.example
 ├── .gitignore
-├── DEPLOY.md               # Deployment instructions
-└── README.md               # This file
+├── DEPLOY.md
+└── README.md
 ```
 
 ---
 
-## রোডম্যাপ (Roadmap)
+## রোডম্যাপ · Roadmap
 
 ### v2 (বর্তমান)
 - [x] হোমপেজ + আজকের আয়াত
+- [x] বাংলা/ইংরেজি UI ভাষা টগল
+- [x] ৩টি স্বতন্ত্র থিম
+- [x] মোবাইল + ডেস্কটপ রেসপনসিভ লেআউট
 - [x] শব্দ অনুসন্ধান (বাংলা + ইংরেজি → আরবি)
 - [x] সূরা ব্রাউজার + সম্পূর্ণ সূরা
 - [x] প্রতি আয়াতে অডিও তিলাওয়াত
-- [x] বুকমার্ক (localStorage)
+- [x] বুকমার্ক + সাম্প্রতিক অনুসন্ধান (localStorage)
 - [x] শেয়ার ইমেজ কার্ড
-- [x] ৩টি থিম
 - [x] রেফারেন্স লিংক
-- [x] মোবাইল অপ্টিমাইজড
+- [x] About পেজ + Footer
 
 ### v3 (পরিকল্পিত)
-- [ ] ক্রস-ডিভাইস বুকমার্ক সিঙ্ক (Supabase)
 - [ ] ভয়েস অনুসন্ধান
 - [ ] অফলাইন সাপোর্ট (PWA)
-- [ ] তাজওয়ীদ কালার কোডিং
+- [ ] ক্রস-ডিভাইস সিঙ্ক (Supabase)
 - [ ] একাধিক ক্বারী নির্বাচন
+- [ ] তাজওয়ীদ কালার কোডিং
 
 ---
 
-## অবদান (Contributing)
+## বানিয়েছেন · Built By
 
-Pull request স্বাগত। বড় পরিবর্তনের জন্য আগে একটি issue খুলুন।
+**[মেহেদী](https://github.com/mehedyk)** · [mehedy.netlify.app](https://mehedy.netlify.app/)
+
+আল্লাহর সন্তুষ্টির জন্য এবং এই উম্মাহর জন্য।
+*For the pleasure of Allah, and for this Ummah.*
 
 ---
 
-## লাইসেন্স (License)
+## লাইসেন্স · License
 
 ```
-MIT License
-
-Copyright (c) 2026 Hadi Quran Reference
+MIT License — Copyright (c) 2026 Mehedy
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -198,23 +192,17 @@ copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 ```
 
 ---
 
-## গুরুত্বপূর্ণ নোট (Important Note)
+## গুরুত্বপূর্ণ · Important
 
-এই অ্যাপ্লিকেশন কুরআনের ব্যাখ্যা বা তাফসীর প্রদান করে না। যেকোনো ধর্মীয় বিষয়ে সিদ্ধান্ত নেওয়ার আগে একজন যোগ্য ইসলামী আলেমের সাথে পরামর্শ করুন।
+এই অ্যাপ্লিকেশন কুরআনের ব্যাখ্যা প্রদান করে না। যেকোনো ধর্মীয় বিষয়ে একজন যোগ্য ইসলামী আলেমের সাথে পরামর্শ করুন।
 
-*This application does not provide interpretation or tafsir of the Quran. Please consult a qualified Islamic scholar for any religious guidance.*
+*This app does not interpret the Quran. Please consult a qualified Islamic scholar for religious guidance.*
 
 ---
 
-<div align="center">
-بَارَكَ اللَّهُ فِيكُمْ
-</div>
+<div align="center">بَارَكَ اللَّهُ فِيكُمْ</div>
