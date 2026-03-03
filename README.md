@@ -1,215 +1,220 @@
-# 🕌 Quran Assistant
-**Verified · Bilingual (EN + বাংলা) · No AI Interpretation**
+# هادي — Hadi Quran Reference
 
-> "And We have certainly made the Quran easy for remembrance, so is there any who will remember?" — 54:17
+<div align="center">
 
----
+**যাচাইকৃত কুরআন রেফারেন্স · বাংলা · কোনো AI ব্যাখ্যা নেই**
 
-## ⚠️ Integrity Statement
+*Verified Quran Reference · Bengali-first · No AI Interpretation*
 
-This tool does **not** interpret the Quran. It does not synthesize, explain, or reason about Quranic meaning using AI. Every piece of Islamic content displayed comes from verified, authenticated sources through the `api.quran.com` API.
-
-The AI layer has exactly one permitted function: answering **narrow factual questions** (what, when, which, who, how many). "Why" questions, interpretive questions, and anything requiring scholarly opinion are **architecturally blocked** — the AI is instructed to refuse and redirect to scholars.
-
-If you display this tool to others, please make sure they understand: **a software tool is not a scholar.**
+</div>
 
 ---
 
-## 🗂️ What the App Does
+## সংক্ষিপ্ত পরিচয় (About)
 
-| Mode | How to use | What happens |
-|---|---|---|
-| **Ayah lookup** | Type `2:255` | Fetches Arabic (KFGQPC Uthman Taha Naskh font), English (Dr. Khattab), Bengali (Muhiuddin Khan), and tafsir (Ahsanul Bayaan / Ibn Kathir fallback). No AI. |
-| **Surah info** | Type `Surah 18` | Fetches chapter facts from API: name, revelation period, ayah count. No AI. |
-| **Word search** | Type `search: sabr` | Searches all 6,236 ayat for the word. Returns every match grouped by surah with Arabic and English. No AI. |
-| **Factual Q&A** | Ask `What are the prayer times?` | AI answers **only** factual, non-interpretive questions. Refuses "why" and conceptual questions. |
+Hadi is a mobile-first Quran reference application built primarily for Bangladeshi Muslims. It provides verified Quran data — Arabic text, Bengali and English translations, tafsir, word search, and per-ayah audio recitation — without generating any AI interpretation of the Quran.
+
+The guiding principle: **an AI should never interpret the words of Allah**. Hadi is a dictionary and index, not a scholar. For meaning and understanding, users are always directed to qualified scholars and verified tafsir.
+
+> "নিশ্চয়ই আমি কুরআন অবতীর্ণ করেছি এবং আমিই তার রক্ষক।" — সূরা আল-হিজর (১৫:৯)
 
 ---
 
-## 🔒 Anti-Hallucination Architecture
+## বৈশিষ্ট্য (Features)
 
-The core design principle: **the AI never generates Islamic content from its own knowledge.**
+### কোনো AI ব্যাখ্যা নেই (Zero AI Interpretation)
+- আয়াত লুকআপ, সূরা তথ্য, শব্দ অনুসন্ধান — সবই সরাসরি API থেকে যাচাইকৃত ডেটা
+- AI শুধুমাত্র সংকীর্ণ তথ্যভিত্তিক প্রশ্নে ব্যবহৃত হয় (কী, কখন, কোনটি, কে)
+- "কেন" এবং ব্যাখ্যামূলক প্রশ্ন সম্পূর্ণ প্রত্যাখ্যাত
+
+### ৫টি পেজ
+| পেজ | বিবরণ |
+|-----|--------|
+| 🏠 হোম | আজকের আয়াত, দ্রুত লুকআপ, নেভিগেশন কার্ড |
+| 🔍 অনুসন্ধান | বাংলা/ইংরেজি শব্দ দিয়ে সব আয়াত খুঁজুন |
+| 📖 সূরা | ১১৪টি সূরা ব্রাউজ করুন, সম্পূর্ণ সূরা পড়ুন |
+| ❓ জিজ্ঞাসা | তথ্যভিত্তিক প্রশ্ন শুধুমাত্র |
+| 🔖 সংরক্ষিত | বুকমার্ক করা আয়াত |
+
+### অন্যান্য বৈশিষ্ট্য
+- **৩টি থিম**: নূর (আলো), লায়ল (রাত), সবজ (সবুজ) — এক বাটনে পরিবর্তন
+- **আজকের আয়াত**: তারিখ-ভিত্তিক, সবার জন্য একই আয়াত
+- **প্রতিটি আয়াতে তিলাওয়াত**: Sheikh Mishary Rashid Al-Afasy-এর কণ্ঠে
+- **শেয়ার কার্ড**: সুন্দর ইমেজ কার্ড তৈরি করে WhatsApp/Facebook-এ শেয়ার করুন
+- **বুকমার্ক**: LocalStorage-এ সংরক্ষণ, কোনো অ্যাকাউন্ট লাগবে না
+- **সাম্প্রতিক অনুসন্ধান**: LocalStorage-এ, দ্রুত পুনরায় অনুসন্ধান
+- **রেফারেন্স লিংক**: প্রতিটি আয়াতে quran.com-এর লিংক — নিজে যাচাই করুন
+- **মোবাইল-ফার্স্ট**: বটম ট্যাব বার, safe area support, সম্পূর্ণ মোবাইল অপ্টিমাইজড
+
+---
+
+## ডেটা উৎস (Data Sources)
+
+| ডেটা | উৎস | ID |
+|------|------|----|
+| আরবি টেক্সট | Uthmani Script | — |
+| বাংলা অনুবাদ | মুহিউদ্দীন খান | `161` |
+| ইংরেজি অনুবাদ | Dr. Mustafa Khattab | `131` |
+| বাংলা তাফসীর | তাফসীর আহসানুল বায়ান | `165` |
+| ইংরেজি তাফসীর | Tafsir Ibn Kathir (fallback) | `169` |
+| অডিও | Sheikh Mishary Rashid Al-Afasy | Islamic.Network CDN |
+| API | [api.quran.com](https://api.quran.com/api/v4) | v4 |
+
+---
+
+## প্রযুক্তি (Tech Stack)
 
 ```
-User Input
-    │
-    ▼
-┌─────────────────────────────────────────────┐
-│ Input Parser                                 │
-│  - ayah ref (2:255) → API fetch, no AI       │
-│  - surah ref (Surah 18) → API fetch, no AI   │
-│  - search: word → API search, no AI          │
-│  - factual question → AI with hard limits    │
-└─────────────────────────────────────────────┘
-    │
-    ▼ (for factual Q&A only)
-┌─────────────────────────────────────────────┐
-│ AI Guardrails (System Prompt)                │
-│  ✅ ALLOWED: what, when, which, who, count   │
-│  ❌ BLOCKED: why, how to, explain, interpret │
-│  ❌ BLOCKED: rulings, ijtihad, opinions      │
-│  ❌ BLOCKED: any synthesis of multiple ayat  │
-│  → If blocked: redirects to scholar          │
-└─────────────────────────────────────────────┘
+Frontend:   React 18 + Vite
+Language:   JavaScript (ES Modules)
+Styling:    CSS-in-JS (inline stylesheet)
+Fonts:      Hind Siliguri (Bengali UI)
+            Playfair Display (English headings)
+            KFGQPC Uthman Taha Naskh (Arabic)
+Storage:    localStorage (bookmarks, recent searches, theme)
+AI:         Anthropic Claude (factual Q&A only, via serverless proxy)
+Deploy:     Vercel (frontend + serverless function)
 ```
 
 ---
 
-## 📖 Data Sources
+## AI ব্যবহার নীতি (AI Usage Policy)
 
-| Content | Source | Cost |
-|---|---|---|
-| Arabic text | `api.quran.com` — Uthmani Mushaf | Free |
-| English translation | Dr. Mustafa Khattab (ID: 131) | Free via API |
-| Bengali translation | Muhiuddin Khan (ID: 161) | Free via API |
-| Bengali tafsir (primary) | Ahsanul Bayaan (ID: 165) | Free via API |
-| English tafsir (fallback) | Ibn Kathir (ID: 169) | Free via API |
-| Arabic font | KFGQPC Uthman Taha Naskh — King Fahd Quran Printing Complex | Free |
+```
+অনুমোদিত (ALLOWED):
+  ✓ ইসলামের পাঁচ স্তম্ভের নাম
+  ✓ নামাজের ওয়াক্তের নাম
+  ✓ সূরার নাম বা আয়াত সংখ্যা
+  ✓ আরবি শব্দের অর্থ
+  ✓ কোন সূরা কোথায় নাজিল হয়েছে
+
+নিষিদ্ধ (FORBIDDEN):
+  ✗ কেন (why) প্রশ্ন
+  ✗ ব্যাখ্যামূলক প্রশ্ন
+  ✗ ফতোয়া বা রুলিং
+  ✗ একাধিক আয়াত সংশ্লেষণ
+  ✗ আলেমের মতামত প্রয়োজন এমন প্রশ্ন
+```
 
 ---
 
-## 🚀 Setup & Run Locally
-
-### 1. Clone and install
+## স্থানীয়ভাবে চালানো (Local Development)
 
 ```bash
-git clone https://github.com/mehedyk/quran-assistant.git
-cd quran-assistant
+# ক্লোন করুন
+git clone https://github.com/yourusername/hadi-quran.git
+cd hadi-quran
+
+# নির্ভরতা ইনস্টল করুন
 npm install
-```
 
-### 2. Set your API key
+# এনভায়রনমেন্ট ভেরিয়েবল সেট করুন
+cp .env.example .env
+# .env ফাইলে ANTHROPIC_API_KEY যোগ করুন
 
-Create a `.env` file in the project root:
-
-```bash
-# .env
-VITE_ANTHROPIC_API_KEY=your_key_here
-```
-
-> **Never commit `.env` to Git.** It is already in `.gitignore`.
-
-### 3. Connect the key in `src/App.jsx`
-
-In the `answerFactualQuestion` function, update the fetch headers:
-
-```js
-headers: {
-  "Content-Type": "application/json",
-  "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-  "anthropic-version": "2023-06-01",
-  "anthropic-dangerous-direct-browser-access": "true",
-},
-```
-
-### 4. Run
-
-```bash
+# চালান
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+`.env` ফাইল তৈরি করুন:
+```
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+```
 
 ---
 
-## 🌐 Deploy to Vercel (Free)
-
-### Option A — Vercel CLI
-
-```bash
-npm install -g vercel
-npm run build
-vercel
-```
-
-Follow the prompts. Then go to:  
-**Vercel Dashboard → Your Project → Settings → Environment Variables**
-
-Add:
-```
-VITE_ANTHROPIC_API_KEY = sk-ant-...
-```
-
-Redeploy once after adding the variable.
-
-### Option B — GitHub Integration (Recommended)
-
-1. Push this repo to your GitHub (`github.com/mehedyk/quran-assistant`)
-2. Go to [vercel.com](https://vercel.com) → New Project → Import from GitHub
-3. Add `VITE_ANTHROPIC_API_KEY` in the Environment Variables section during setup
-4. Click Deploy
-
-Every `git push` to `main` will auto-deploy. ✅
-
-> **Production note:** For a production app, move the Anthropic API call to a backend function (Vercel Serverless Function or Edge Function) so the API key is never exposed in the browser bundle. The `vercel.json` in this repo includes a basic rewrite setup for this.
-
----
-
-## 📱 Mobile App (Android — Free)
-
-```bash
-npm install @capacitor/core @capacitor/cli @capacitor/android
-npx cap init "Quran Assistant" com.mehedyk.quranassistant --web-dir dist
-npm run build
-npx cap add android
-npx cap sync
-npx cap open android
-```
-
-Requires Android Studio. Free to build; Google Play publishing = $25 one-time fee.
-
----
-
-## 🔒 Security Checklist
-
-- [ ] `.env` is in `.gitignore` — never pushed
-- [ ] API key set in Vercel environment variables, not in code
-- [ ] `anthropic-dangerous-direct-browser-access` header understood — move to backend for production
-- [ ] HTTPS enforced automatically by Vercel
-- [ ] No user data is collected or stored anywhere
-
----
-
-## 📁 Project Structure
+## প্রজেক্ট স্ট্রাকচার (Project Structure)
 
 ```
-quran-assistant/
+hadi-quran/
+├── api/
+│   └── ask.js              # Vercel serverless function (Anthropic proxy)
 ├── src/
-│   ├── App.jsx          ← Entire app: API, logic, UI, CSS
-│   └── main.jsx         ← React entry point
+│   ├── App.jsx             # Main app + all pages + components
+│   ├── main.jsx            # React entry point
+│   ├── hooks/
+│   │   ├── useTheme.js     # Theme management
+│   │   └── useAudio.js     # Per-ayah audio playback
+│   └── utils/
+│       ├── constants.js    # Themes, word map, helper functions
+│       ├── api.js          # All API calls (quran.com + Anthropic)
+│       └── storage.js      # localStorage (bookmarks, recent, theme)
 ├── index.html
-├── vite.config.js
-├── vercel.json          ← Vercel deployment config
 ├── package.json
+├── vite.config.js
+├── vercel.json
+├── .env.example
 ├── .gitignore
-└── README.md
+├── DEPLOY.md               # Deployment instructions
+└── README.md               # This file
 ```
 
 ---
 
-## 🗺️ Roadmap
+## রোডম্যাপ (Roadmap)
 
-- [x] Ayah lookup — Arabic + EN + BN + tafsir
-- [x] Surah info
-- [x] Word/keyword search, grouped by surah
-- [x] Factual Q&A with strict AI guardrails
-- [x] KFGQPC Uthman Taha Naskh (Classic Madani) font
-- [x] Tafsir Ahsanul Bayaan (Bengali primary)
-- [ ] Audio recitation per ayah (quran.com supports this)
-- [ ] Bookmark ayat locally
-- [ ] Share ayah as image card
-- [ ] PWA offline support (cache frequently used surahs)
-- [ ] Android app via Capacitor
+### v2 (বর্তমান)
+- [x] হোমপেজ + আজকের আয়াত
+- [x] শব্দ অনুসন্ধান (বাংলা + ইংরেজি → আরবি)
+- [x] সূরা ব্রাউজার + সম্পূর্ণ সূরা
+- [x] প্রতি আয়াতে অডিও তিলাওয়াত
+- [x] বুকমার্ক (localStorage)
+- [x] শেয়ার ইমেজ কার্ড
+- [x] ৩টি থিম
+- [x] রেফারেন্স লিংক
+- [x] মোবাইল অপ্টিমাইজড
 
----
-
-## 🤲 Intention
-
-This project is built as *sadaqah jariyah* — ongoing charity. May it benefit the Ummah and be counted as a good deed for everyone who contributed to it.
-
-**وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ**  
-*"My success is only through Allah."* — Quran 11:88
+### v3 (পরিকল্পিত)
+- [ ] ক্রস-ডিভাইস বুকমার্ক সিঙ্ক (Supabase)
+- [ ] ভয়েস অনুসন্ধান
+- [ ] অফলাইন সাপোর্ট (PWA)
+- [ ] তাজওয়ীদ কালার কোডিং
+- [ ] একাধিক ক্বারী নির্বাচন
 
 ---
 
-Built by **S.M. Mehedy Kawser** — [github.com/mehedyk](https://github.com/mehedyk) · [mehedy.netlify.app](https://mehedy.netlify.app)
+## অবদান (Contributing)
+
+Pull request স্বাগত। বড় পরিবর্তনের জন্য আগে একটি issue খুলুন।
+
+---
+
+## লাইসেন্স (License)
+
+```
+MIT License
+
+Copyright (c) 2026 Hadi Quran Reference
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## গুরুত্বপূর্ণ নোট (Important Note)
+
+এই অ্যাপ্লিকেশন কুরআনের ব্যাখ্যা বা তাফসীর প্রদান করে না। যেকোনো ধর্মীয় বিষয়ে সিদ্ধান্ত নেওয়ার আগে একজন যোগ্য ইসলামী আলেমের সাথে পরামর্শ করুন।
+
+*This application does not provide interpretation or tafsir of the Quran. Please consult a qualified Islamic scholar for any religious guidance.*
+
+---
+
+<div align="center">
+بَارَكَ اللَّهُ فِيكُمْ
+</div>
