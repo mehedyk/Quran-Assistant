@@ -842,8 +842,8 @@ function AboutPage({ t, lang }) {
         <div className="about-section-title">{isBn ? "কৃতজ্ঞতা" : "With Gratitude"}</div>
         <div className="about-text">
           {isBn
-            ? "পরিবার, বন্ধু ও ভাইয়েরা — যারা পরীক্ষা করেছেন, মতামত দিয়েছেন, সাহায্য করেছেন এবং দোয়া করেছেন। আল্লাহ আপনাদের সবাইকে উত্তম প্রতিদান দিন।"
-            : "Family, friends and brothers — who tested, gave feedback, helped and made dua. May Allah reward you all with the best."}
+            ? "পরিবার, বন্ধু ও ভাই— যারা পরীক্ষা করেছেন, মতামত দিয়েছেন, সাহায্য করেছেন এবং দোয়া করেছেন। আল্লাহ আপনাদের সবাইকে উত্তম প্রতিদান দিন।"
+            : "Family, friends and brother — who tested, gave feedback, helped and made dua. May Allah reward you all with the best."}
         </div>
       </div>
 
