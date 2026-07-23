@@ -1,13 +1,8 @@
-# 🚀 Hadi v2 — Deployment Guide
+# 🚀 Hadi — Deployment Guide (Vercel only)
 
----
-
-## প্রয়োজনীয় · Prerequisites
-
-- Node.js v18+
-- Git + GitHub account
-- Vercel account (sign up with GitHub at vercel.com)
-- Anthropic API Key from [console.anthropic.com](https://console.anthropic.com)
+This project is designed to be deployed **directly on Vercel** — you do not
+need to install Node.js, run `npm install`, or run anything on your own
+machine. Vercel builds and hosts everything for you.
 
 ---
 
@@ -21,55 +16,57 @@
 your-repo/           ← ROOT (এখানেই সব)
 ├── api/
 │   └── ask.js       ← ✅ এখানে থাকতে MUST
+├── public/
+│   └── logo.svg
 ├── src/
 ├── vercel.json      ← ✅ এখানে থাকতে MUST
 └── ...
 ```
 
-ভুল:
-```
-your-repo/
-└── hadi-v3/         ← ❌ এভাবে subfolder হলে AI কাজ করবে না
-    ├── api/
-    └── ...
-```
+---
+
+## ধাপ ১ — GitHub repo তৈরি করুন
+
+GitHub-এ একটা নতুন (empty) repository বানান, তারপর এই ফোল্ডারের সব ফাইল
+সেই repo-তে আপলোড করুন — GitHub-এর ওয়েব "Add file → Upload files" দিয়েও
+করা যায়, আলাদা কোনো টুল ইনস্টলের দরকার নেই।
 
 ---
 
-## ধাপ ১ — ফাইল প্রস্তুত করুন
+## ধাপ ২ — Vercel-এ Import করুন
 
-Zip খুলুন। `hadi-v3/` ফোল্ডারের **ভেতরের সব ফাইল** আপনার GitHub repo-তে কপি করুন।
-
----
-
-## ধাপ ২ — GitHub-এ Push করুন
-
-```bash
-cd your-repo-folder
-git add .
-git commit -m "Hadi v2 — complete rebuild"
-git push
-```
+1. [vercel.com](https://vercel.com) → sign in with GitHub
+2. **Add New → Project**
+3. আপনার repo বেছে নিন → Vercel নিজে থেকেই Vite framework detect করবে
+4. এখনই Deploy করবেন না — আগে নিচের ধাপে environment variable যোগ করুন
 
 ---
 
-## ধাপ ৩ — Vercel-এ Environment Variable যোগ করুন
+## ধাপ ৩ — Environment Variable যোগ করুন
 
-**vercel.com → Project → Settings → Environment Variables**
+**Project → Settings → Environment Variables**
 
 | Name | Value | Environments |
 |------|-------|--------------|
-| `ANTHROPIC_API_KEY` | `sk-ant-api03-...` | ✅ Production ✅ Preview ✅ Development |
+| `GROQ_API_KEY` | আপনার Groq API key (console.groq.com থেকে, বিনামূল্যে) | ✅ Production ✅ Preview |
+| `ALLOWED_ORIGIN` *(optional but recommended)* | `https://your-app.vercel.app` | ✅ Production |
+| `GROQ_MODEL` *(optional)* | e.g. `llama-3.3-70b-versatile` | ✅ Production |
 
-> ⚠️ `VITE_` prefix দেবেন না। Key শুধু server-side-এ থাকে।
+> ⚠️ `VITE_` prefix দেবেন না। এই key শুধু server-side-এ (`api/ask.js`) ব্যবহার হয়,
+> ব্রাউজারে কখনো পাঠানো হয় না।
+>
+> Groq API key সম্পূর্ণ **বিনামূল্যে** — কোনো credit card লাগে না।
+> [console.groq.com](https://console.groq.com/keys) এ গিয়ে email/Google
+> দিয়ে সাইন আপ করুন, "API Keys" থেকে একটা key বানান, এবং সেটা এখানে বসান।
 
 ---
 
-## ধাপ ৪ — Redeploy করুন
+## ধাপ ৪ — Deploy
 
-Vercel Dashboard → Deployments → সর্বশেষটি → ⋯ → **Redeploy**
+**Deploy** বাটনে চাপুন। Vercel নিজে থেকেই build করবে এবং একটা লাইভ URL দেবে —
+এই পুরো প্রক্রিয়ায় আপনার নিজের কম্পিউটারে কিছুই install করতে হয় না।
 
-GitHub-এ push করলেও auto-deploy হয়।
+GitHub repo-তে যেকোনো নতুন push করলে Vercel অটোমেটিক redeploy করবে।
 
 ---
 
@@ -81,33 +78,43 @@ GitHub-এ push করলেও auto-deploy হয়।
 | `2:255` | আরবি + বাংলা + ইংরেজি + তাফসীর |
 | সূরা ১ | ফাতিহার সব আয়াত |
 | খোঁজ: সবর | আয়াত তালিকা |
-| জিজ্ঞাসা: নামাজের ওয়াক্ত কয়টি? | AI উত্তর দেবে |
+| জিজ্ঞাসা: নামাজের ওয়াক্ত কয়টি? | Groq factual উত্তর দেবে |
+| জিজ্ঞাসা: কোনো কোড লিখে দাও | ভদ্রভাবে প্রত্যাখ্যান করবে |
+| জিজ্ঞাসা: ইসলাম-বহির্ভূত যেকোনো প্রশ্ন | ভদ্রভাবে প্রত্যাখ্যান করবে |
 | Language বাটন | UI ভাষা পরিবর্তন হবে |
 | Theme বাটন | থিম পরিবর্তন হবে |
+| ব্রাউজার ট্যাব | অ্যানিমেটেড ফেভিকন দেখা যাবে |
 | ▶ তিলাওয়াত | অডিও চলবে |
 | 📤 শেয়ার | ইমেজ কার্ড ডাউনলোড হবে |
 
 ---
 
-## লোকাল ডেভেলপমেন্ট
+## Groq API key কীভাবে পাবেন
 
-```bash
-npm install
-echo "ANTHROPIC_API_KEY=sk-ant-api03-your-key" > .env
-npm run dev
-# http://localhost:5173
-```
+1. [console.groq.com](https://console.groq.com) → sign up (email বা Google, credit card লাগে না)
+2. বাম মেনু থেকে **API Keys** → **Create API Key**
+3. Key-টা কপি করে Vercel-এ `GROQ_API_KEY` হিসেবে বসান (ধাপ ৩ দেখুন)
 
-> AI locally test করতে: `npm i -g vercel && vercel dev`
+Groq বিভিন্ন open-source মডেল (Llama ইত্যাদি) সুপার-ফাস্ট হার্ডওয়্যারে চালায়।
+Free tier-এ প্রতিদিন হাজার হাজার request পাওয়া যায় — এই অ্যাপের মতো ছোট
+প্রজেক্টের জন্য যথেষ্ট। ট্রাফিক অনেক বেশি হলে `GROQ_MODEL=llama-3.1-8b-instant`
+সেট করুন — এটা `llama-3.3-70b-versatile`-এর চেয়ে বেশি free-tier rate limit দেয়।
+
+এই প্রজেক্ট শুধু `api/ask.js`-এর মাধ্যমে Groq-কে কল করে — API key কখনো
+ব্রাউজারে যায় না, এবং ভিজিটর কী প্রশ্ন করতে পারবে তা কঠোরভাবে সীমিত
+(`api/ask.js`-এর উপরের কমেন্ট দেখুন)।
 
 ---
 
 ## সমস্যা সমাধান · Troubleshooting
 
-**AI কাজ করছে না (400/500)**
-→ `ANTHROPIC_API_KEY` Vercel-এ আছে কিনা দেখুন
+**AI কাজ করছে না (500)**
+→ `GROQ_API_KEY` Vercel-এ Production environment-এ আছে কিনা দেখুন
 → `VITE_` prefix নেই তো?
 → Save করার পরে Redeploy করেছেন?
+
+**AI বলছে "Forbidden" (403)**
+→ `ALLOWED_ORIGIN` ভুল ডোমেইনে সেট করা আছে — আপনার আসল Vercel URL দিন
 
 **আয়াত লোড হচ্ছে না**
 → `api.quran.com` accessible কিনা চেক করুন
