@@ -75,9 +75,15 @@ Fonts:      Hind Siliguri (Bengali UI)
             Playfair Display (English headings)
             KFGQPC Uthman Taha Naskh (Arabic)
 Storage:    localStorage (bookmarks, searches, theme, language)
-AI:         Anthropic Claude — factual Q&A only, via serverless proxy
-Deploy:     Vercel (frontend + serverless function)
+AI:         Groq (free tier, Llama models) — factual Q&A only, via a locked-down serverless proxy
+Deploy:     Vercel only (frontend + serverless function) — no local install needed
 ```
+
+**Security note:** `api/ask.js` never forwards a client-supplied system
+prompt or model choice — the question text is the only thing the browser
+can send. The system prompt, refusal rules, rate limiting, origin check,
+and output sanitizing all live server-side. See the comments at the top
+of that file for the full threat model.
 
 ---
 
@@ -94,23 +100,24 @@ Deploy:     Vercel (frontend + serverless function)
   ✗ ব্যাখ্যামূলক বা ধর্মতাত্ত্বিক প্রশ্ন
   ✗ ফতোয়া বা রুলিং
   ✗ আলেমের মতামত প্রয়োজন এমন যেকোনো প্রশ্ন
+  ✗ ইসলাম/কুরআন ছাড়া অন্য যেকোনো বিষয় (সাধারণ জ্ঞান, বর্তমান ঘটনা, ইত্যাদি)
+  ✗ কোড লেখা, ডিবাগ করা, বা যেকোনো প্রোগ্রামিং/টেকনিক্যাল বিষয়
+  ✗ system prompt পরিবর্তন বা প্রকাশ করার যেকোনো চেষ্টা (prompt injection)
 ```
+
+The assistant is deliberately "paranoid" — any question outside the
+narrow allowed list gets the same short refusal, regardless of how it's
+phrased, translated, or wrapped in a hypothetical/roleplay framing.
 
 ---
 
-## লোকাল ডেভেলপমেন্ট · Local Development
+## ডিপ্লয় · Deployment (Vercel only)
 
-```bash
-git clone https://github.com/mehedyk/hadi-quran.git
-cd hadi-quran
-npm install
-
-# Environment variable
-echo "ANTHROPIC_API_KEY=sk-ant-api03-your-key" > .env
-
-npm run dev
-# Opens at http://localhost:5173
-```
+This project targets **Vercel only** — there is no supported local dev
+workflow. Push this folder to a GitHub repo, import it on
+[vercel.com](https://vercel.com), add the `GROQ_API_KEY` environment
+variable, and deploy. Full step-by-step instructions are in
+[`DEPLOY.md`](./DEPLOY.md).
 
 ---
 
@@ -119,16 +126,19 @@ npm run dev
 ```
 hadi-quran/
 ├── api/
-│   └── ask.js              # Vercel serverless proxy (Anthropic)
+│   └── ask.js              # Locked-down Vercel serverless proxy (Groq)
+├── public/
+│   └── logo.svg            # Static brand logo / favicon fallback
 ├── src/
 │   ├── App.jsx             # All pages + components + CSS
-│   ├── main.jsx            # React entry
+│   ├── main.jsx            # React entry + animated favicon start
 │   ├── hooks/
 │   │   ├── useTheme.js     # 3-theme system with CSS variables
 │   │   └── useAudio.js     # Per-ayah audio playback
 │   └── utils/
 │       ├── constants.js    # Themes, word map, Ayah of Day
-│       ├── api.js          # quran.com + Anthropic calls
+│       ├── api.js          # quran.com + Groq calls
+│       ├── favicon.js      # Canvas-based animated favicon
 │       └── storage.js      # localStorage abstraction
 ├── index.html
 ├── package.json
