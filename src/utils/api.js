@@ -100,36 +100,23 @@ export async function searchByWord(query) {
   return { query: original, resolvedQuery: resolved, mapped, groups, total: items.length };
 }
 
-export async function callAI(system, userContent, maxTokens = 300) {
+// Talks to /api/ask, a locked-down server-side proxy to Groq.
+// NOTE: the system prompt, model choice, and token limits all live on the
+// server now (api/ask.js) — the client can only ever send the question
+// text and a language code. This is intentional: it stops anyone from
+// pointing arbitrary prompts at your API key by calling this endpoint
+// directly with a crafted request body.
+export async function callAI(question, lang = "bn") {
   const response = await fetch("/api/ask", {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model:      "claude-sonnet-4-20250514",
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: userContent }],
-    }),
+    body: JSON.stringify({ question, lang }),
   });
-  if (!response.ok) throw new Error(`AI error: ${response.status}`);
-  const data = await response.json();
-  return data.content?.[0]?.text || null;
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || `AI error: ${response.status}`);
+  }
+  return data?.answer || null;
 }
-
-export const FACTUAL_SYSTEM = `You are a Quran reference assistant. Primary audience: Bengali-speaking Muslims in Bangladesh.
-
-LANGUAGE: If user writes Bengali → respond Bengali. If English → respond English.
-
-ALLOWED questions only:
-- Pillar names, prayer time names, surah identifiers, ayat counts, word definitions, historical facts
-- Questions with: কী, কখন, কোনটি, কে, কতটি / what, when, which, who, how many
-
-FORBIDDEN — refuse:
-- কেন (why), interpretive, conceptual, rulings, fatwa, scholarly opinion
-
-IF FORBIDDEN (Bengali): "এই প্রশ্নের জন্য আলেমের পরামর্শ নিন। অনুসন্ধান করুন: [শব্দ]"
-IF FORBIDDEN (English): "This requires scholarly interpretation. Please consult a qualified scholar."
-
-IF ALLOWED: 2-4 sentences, established facts only, no elaboration.
-
-You are a dictionary and index, not a scholar.`;
