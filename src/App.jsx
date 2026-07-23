@@ -4,12 +4,29 @@ import { useAudio } from "./hooks/useAudio.js";
 import { THEMES, getAyahOfTheDay, stripHtml } from "./utils/constants.js";
 import {
   fetchAyah, fetchSurahMeta, fetchSurahAyat,
-  fetchAllSurahs, searchByWord, callAI, FACTUAL_SYSTEM
+  fetchAllSurahs, searchByWord, callAI
 } from "./utils/api.js";
 import {
   getBookmarks, addBookmark, removeBookmark, isBookmarked,
   getRecentSearches, addRecentSearch, isFirstVisit
 } from "./utils/storage.js";
+
+// ════════════════════════════════════════════════════════════════
+// BRAND LOGO — inline SVG so it inherits theme colors via currentColor
+// and needs no extra network request. Matches /public/logo.svg.
+// ════════════════════════════════════════════════════════════════
+function Logo({ size = 34, className = "" }) {
+  return (
+    <svg className={`brand-logo ${className}`} width={size} height={size} viewBox="0 0 100 100" aria-hidden>
+      <circle cx="50" cy="50" r="48" fill="var(--green)" />
+      <path d="M50 40 C42 34 30 32 22 34 L22 66 C30 64 42 66 50 72 C58 66 70 64 78 66 L78 34 C70 32 58 34 50 40 Z"
+        fill="none" stroke="var(--gold2)" strokeWidth="2.4" strokeLinejoin="round" />
+      <line x1="50" y1="40" x2="50" y2="72" stroke="var(--gold2)" strokeWidth="2.2" />
+      <path d="M63 22 A13 13 0 1 0 63 46 A10.5 10.5 0 1 1 63 22 Z" fill="var(--gold2)" className="brand-logo-crescent" />
+      <path d="M40 20 L41.6 24.6 L46.4 24.6 L42.6 27.6 L44 32.2 L40 29.4 L36 32.2 L37.4 27.6 L33.6 24.6 L38.4 24.6 Z" fill="var(--gold2)" className="brand-logo-star" />
+    </svg>
+  );
+}
 
 // ════════════════════════════════════════════════════════════════
 // LANGUAGE CONTEXT
@@ -52,6 +69,7 @@ const T = {
     askPlaceholder: "প্রশ্ন লিখুন...",
     askBtn:         "জিজ্ঞাসা",
     askNote:        'কেন এবং ব্যাখ্যামূলক প্রশ্ন এখানে উত্তর দেওয়া হয় না। সেগুলোর জন্য একজন আলেমের সাথে পরামর্শ করুন।',
+    askPoweredBy:   "⚙️ শুধু কুরআন সম্পর্কিত তথ্যভিত্তিক প্রশ্নের জন্য — অন্য কোনো বিষয়ে উত্তর দেওয়া হয় না।",
     exampleQs:      ["নামাজের ওয়াক্ত কয়টি ও নাম কী?","ইসলামের পাঁচ স্তম্ভ কী কী?","সবচেয়ে বড় সূরার নাম কী?","আল-বাকারায় কতটি আয়াত আছে?"],
     answerLabel:    "উত্তর",
     recite:         "▶ তিলাওয়াত",
@@ -128,6 +146,7 @@ const T = {
     askPlaceholder: "Type your question...",
     askBtn:         "Ask",
     askNote:        'Why and interpretive questions are not answered here. Please consult a qualified Islamic scholar for those.',
+    askPoweredBy:   "⚙️ Answers basic Qur'an facts only — nothing else, on any topic, no exceptions.",
     exampleQs:      ["What are the 5 pillars of Islam?","What are the names of the prayer times?","What is the longest surah?","How many ayat are in Al-Baqarah?"],
     answerLabel:    "Answer",
     recite:         "▶ Recite",
@@ -218,7 +237,10 @@ export default function App() {
         {/* SIDEBAR — desktop */}
         <aside className="sidebar">
           <div className="sidebar-brand">
-            <button className="sidebar-logo" onClick={() => navigate("home")}>هادي</button>
+            <button className="sidebar-logo-btn" onClick={() => navigate("home")}>
+              <Logo size={38} />
+              <span className="sidebar-logo">هادي</span>
+            </button>
             <div className="sidebar-tagline">{t.appTagline}</div>
           </div>
           <nav className="sidebar-nav">
@@ -240,7 +262,10 @@ export default function App() {
         <div className="content-wrap">
           {/* TOP NAV — mobile */}
           <nav className="topnav">
-            <button className="topnav-logo" onClick={() => navigate("home")}>هادي</button>
+            <button className="topnav-logo-btn" onClick={() => navigate("home")}>
+              <Logo size={30} />
+              <span className="topnav-logo">هادي</span>
+            </button>
             <div className="topnav-actions">
               <button className="nav-btn" onClick={() => setShowHowTo(true)}>?</button>
               <button className="nav-btn" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"}</button>
@@ -255,7 +280,7 @@ export default function App() {
             {page === "ayah"          && <AyahPage t={t} data={pageData} audio={audio} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
             {page === "surah"         && <SurahPage t={t} data={pageData} navigate={navigate} audio={audio} />}
             {page === "bookmarks"     && <BookmarksPage key={bookmarkTick} t={t} navigate={navigate} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
-            {page === "ask"           && <AskPage t={t} />}
+            {page === "ask"           && <AskPage t={t} lang={lang} />}
             {page === "about"         && <AboutPage t={t} lang={lang} />}
           </main>
 
@@ -705,7 +730,7 @@ function BookmarksPage({ t, navigate, onBookmarkChange }) {
 // ════════════════════════════════════════════════════════════════
 // ASK PAGE
 // ════════════════════════════════════════════════════════════════
-function AskPage({ t }) {
+function AskPage({ t, lang }) {
   const [input, setInput]     = useState("");
   const [answer, setAnswer]   = useState(null);
   const [loading, setLoading] = useState(false);
@@ -714,7 +739,7 @@ function AskPage({ t }) {
   async function ask() {
     if (!input.trim()) return;
     setLoading(true); setError(null); setAnswer(null);
-    try { const a = await callAI(FACTUAL_SYSTEM, input.trim(), 300); setAnswer(a); }
+    try { const a = await callAI(input.trim(), lang); setAnswer(a); }
     catch { setError(t.aiError); }
     finally { setLoading(false); }
   }
@@ -727,7 +752,7 @@ function AskPage({ t }) {
       </div>
       <div className="ask-note">{t.askNote}</div>
       <div className="search-bar-wrap">
-        <input className="search-bar" value={input}
+        <input className="search-bar" value={input} maxLength={300}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && ask()}
           placeholder={t.askPlaceholder} />
@@ -735,6 +760,7 @@ function AskPage({ t }) {
           {loading ? <span className="spin">⟳</span> : t.askBtn}
         </button>
       </div>
+      <div className="ask-powered">{t.askPoweredBy}</div>
       <div className="section">
         <div className="section-label">{t.howToUse}</div>
         <div className="chip-col">
@@ -854,7 +880,7 @@ function AboutPage({ t, lang }) {
           {[
             { name:"api.quran.com",   desc:isBn?"আরবি টেক্সট, অনুবাদ, তাফসীর":"Arabic text, translations, tafsir", url:"https://api.quran.com" },
             { name:"Islamic.Network", desc:isBn?"অডিও তিলাওয়াত (Mishary Alafasy)":"Audio recitation (Mishary Alafasy)", url:"https://islamic.network" },
-            { name:"Anthropic Claude",desc:isBn?"সীমিত তথ্যভিত্তিক প্রশ্নোত্তর":"Limited factual Q&A only", url:"https://anthropic.com" },
+            { name:"Groq",desc:isBn?"সীমিত তথ্যভিত্তিক প্রশ্নোত্তর":"Limited factual Q&A only", url:"https://groq.com" },
           ].map(s => (
             <a key={s.name} className="about-source-row" href={s.url} target="_blank" rel="noopener noreferrer">
               <span className="about-source-name">{s.name}</span>
@@ -1034,7 +1060,8 @@ const BASE_CSS = `
   @media(min-width:768px){
     .sidebar{display:flex;flex-direction:column;width:240px;min-height:100vh;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
     .sidebar-brand{padding:28px 20px 20px;border-bottom:1px solid var(--sidebar-border);}
-    .sidebar-logo{font-family:'UthmanNaskh',serif;font-size:2.2rem;color:var(--gold2);cursor:pointer;line-height:1;display:block;background:none;border:none;}
+    .sidebar-logo-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:0;}
+    .sidebar-logo{font-family:'UthmanNaskh',serif;font-size:2rem;color:var(--gold2);line-height:1;}
     .sidebar-tagline{font-size:0.68rem;color:var(--sidebar-ink);opacity:0.55;margin-top:4px;}
     .sidebar-nav{flex:1;padding:16px 0;}
     .sidebar-link{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;cursor:pointer;color:var(--sidebar-ink);opacity:0.65;font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;text-align:left;transition:all 0.15s;}
@@ -1061,7 +1088,8 @@ const BASE_CSS = `
 
   .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
   .topnav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--green);position:sticky;top:0;z-index:100;}
-  .topnav-logo{font-family:'UthmanNaskh',serif;font-size:1.6rem;color:var(--gold2);background:none;border:none;cursor:pointer;}
+  .topnav-logo-btn{display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;}
+  .topnav-logo{font-family:'UthmanNaskh',serif;font-size:1.4rem;color:var(--gold2);}
   .topnav-actions{display:flex;gap:6px;}
   .nav-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:white;font-size:0.9rem;cursor:pointer;display:grid;place-items:center;transition:background 0.15s;}
   .nav-btn:hover{background:rgba(255,255,255,0.16);}
@@ -1198,6 +1226,7 @@ const BASE_CSS = `
   .bookmark-del{width:42px;background:rgba(239,68,68,0.04);border:none;border-left:1px solid var(--border);color:#ef4444;cursor:pointer;font-size:0.78rem;flex-shrink:0;}
 
   .ask-note{margin:0 18px 14px;font-size:0.75rem;color:var(--warn);background:var(--warn-bg);border:1px solid rgba(122,54,16,0.12);border-radius:8px;padding:8px 12px;line-height:1.6;}
+  .ask-powered{margin:10px 18px 14px;font-size:0.68rem;color:var(--ink3);opacity:0.75;}
   .answer-card{margin:0 18px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green2);border-radius:0 12px 12px 0;padding:14px;}
   .answer-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--green2);margin-bottom:8px;}
   .answer-text{font-size:0.92rem;line-height:1.88;color:var(--ink);margin-bottom:10px;}
@@ -1246,4 +1275,55 @@ const BASE_CSS = `
   @keyframes spin{to{transform:rotate(360deg)}}
   .btn-primary{font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;font-weight:600;padding:12px 20px;background:var(--green);color:white;border:none;border-radius:10px;cursor:pointer;transition:background 0.15s;}
   .btn-primary:hover{background:var(--green2);}
+
+  /* ── UI upgrade pass ─────────────────────────────────────────── */
+
+  /* Brand mark: gentle glow + a slow star twinkle so it reads as alive,
+     without being distracting. */
+  .brand-logo{filter:drop-shadow(0 1px 4px rgba(0,0,0,0.25));flex-shrink:0;}
+  .brand-logo-star{transform-origin:40px 26px;animation:logoTwinkle 3.2s ease-in-out infinite;}
+  .brand-logo-crescent{transform-origin:63px 34px;animation:logoDrift 6s ease-in-out infinite;}
+  @keyframes logoTwinkle{0%,100%{opacity:0.55;transform:scale(0.85);}50%{opacity:1;transform:scale(1.05);}}
+  @keyframes logoDrift{0%,100%{transform:rotate(0deg);}50%{transform:rotate(6deg);}}
+  @media (prefers-reduced-motion: reduce){
+    .brand-logo-star, .brand-logo-crescent{animation:none;}
+  }
+
+  /* Glass topnav on mobile — subtle depth instead of a flat block. */
+  .topnav{background:linear-gradient(180deg,var(--green),rgba(28,74,46,0.92));backdrop-filter:saturate(140%) blur(6px);box-shadow:0 2px 10px var(--shadow);}
+  .sidebar{box-shadow:2px 0 14px var(--shadow);}
+  .sidebar-link{border-radius:0 20px 20px 0;margin-right:10px;}
+  .sidebar-link.active{box-shadow:inset 0 0 0 1px rgba(212,160,64,0.15);}
+
+  /* Page transition: content fades/slides in on every navigation so the
+     app feels responsive rather than snapping between screens. */
+  .page{animation:pageIn 0.28s cubic-bezier(.22,.61,.36,1);}
+  @keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){.page{animation:none;}}
+
+  /* Consistent, visible focus rings for keyboard users (accessibility +
+     a small security/UX win: never rely on outline:none without a
+     replacement). */
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--gold2); outline-offset:2px; border-radius:4px;
+  }
+
+  /* Nicer buttons + cards: consistent easing, subtle lift, no jank. */
+  .nav-card, .surah-card, .search-ayah-row, .bookmark-row, .answer-card, .about-source-row{
+    transition:transform 0.18s cubic-bezier(.22,.61,.36,1), box-shadow 0.18s ease, border-color 0.15s ease;
+  }
+  .nav-card:hover, .surah-card:hover{box-shadow:0 6px 18px var(--shadow);}
+  .answer-card{animation:answerIn 0.3s cubic-bezier(.22,.61,.36,1);}
+  @keyframes answerIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .btn-primary, .search-go, .tab, .sidebar-link, .nav-btn{
+    transition:background 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+  }
+  .btn-primary:active, .search-go:active{transform:scale(0.97);}
+
+  /* Scrollbar polish (harmless progressive enhancement). */
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--gold);}
 `;
