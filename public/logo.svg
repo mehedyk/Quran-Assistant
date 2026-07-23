@@ -1,0 +1,26 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hadi logo">
+  <defs>
+    <linearGradient id="hadiGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2a6840"/>
+      <stop offset="100%" stop-color="#123a24"/>
+    </linearGradient>
+    <linearGradient id="hadiGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0c060"/>
+      <stop offset="100%" stop-color="#b07828"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="50" cy="50" r="48" fill="url(#hadiGreen)"/>
+
+  <!-- open book base -->
+  <path d="M50 40 C42 34 30 32 22 34 L22 66 C30 64 42 66 50 72 C58 66 70 64 78 66 L78 34 C70 32 58 34 50 40 Z"
+        fill="none" stroke="url(#hadiGold)" stroke-width="2.4" stroke-linejoin="round"/>
+  <line x1="50" y1="40" x2="50" y2="72" stroke="url(#hadiGold)" stroke-width="2.2"/>
+
+  <!-- crescent -->
+  <path d="M63 22 A13 13 0 1 0 63 46 A10.5 10.5 0 1 1 63 22 Z" fill="url(#hadiGold)"/>
+
+  <!-- star -->
+  <path d="M40 20 L41.6 24.6 L46.4 24.6 L42.6 27.6 L44 32.2 L40 29.4 L36 32.2 L37.4 27.6 L33.6 24.6 L38.4 24.6 Z"
+        fill="url(#hadiGold)"/>
+</svg>
