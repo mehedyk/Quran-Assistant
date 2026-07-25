@@ -29,6 +29,91 @@ function Logo({ size = 34, className = "" }) {
 }
 
 // ════════════════════════════════════════════════════════════════
+// THEME SWITCHER — animated trigger + popover with live swatch previews
+// ════════════════════════════════════════════════════════════════
+const THEME_ICONS = { noor: "☀️", layl: "🌙", sabz: "📜", zill: "🌑" };
+
+function ThemeSwitcher({ theme, themeList, selectTheme, label, variant = "sidebar" }) {
+  const [open, setOpen] = useState(false);
+  const [pop, setPop]   = useState(false);
+  const wrapRef = useRef(null);
+  const prevTheme = useRef(theme);
+
+  // Pop/bounce the trigger icon whenever the active theme actually changes.
+  useEffect(() => {
+    if (prevTheme.current === theme) return;
+    prevTheme.current = theme;
+    setPop(true);
+    const id = setTimeout(() => setPop(false), 420);
+    return () => clearTimeout(id);
+  }, [theme]);
+
+  // Close on outside click / Escape.
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); }
+    function onKey(e) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  function pick(key) {
+    selectTheme(key);
+    setOpen(false);
+  }
+
+  return (
+    <div className={`theme-switcher theme-switcher-${variant}`} ref={wrapRef}>
+      <button
+        type="button"
+        className={`theme-trigger ${pop ? "theme-trigger-pop" : ""} ${open ? "theme-trigger-open" : ""}`}
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        <span className="theme-trigger-icon">{THEME_ICONS[theme] || "🎨"}</span>
+        {label && <span className="theme-trigger-label">{label}</span>}
+        <span className="theme-trigger-caret">▾</span>
+      </button>
+
+      {open && (
+        <div className={`theme-popover theme-popover-${variant}`} role="menu">
+          {themeList.map((th, i) => (
+            <button
+              type="button"
+              key={th.key}
+              className={`theme-option ${th.key === theme ? "theme-option-active" : ""}`}
+              style={{ transitionDelay: `${i * 30}ms`, animationDelay: `${i * 45}ms` }}
+              onClick={() => pick(th.key)}
+              role="menuitemradio"
+              aria-checked={th.key === theme}
+            >
+              <span
+                className="theme-swatch"
+                style={{
+                  background: `conic-gradient(${th["--bg"]} 0deg 120deg, ${th["--green"]} 120deg 240deg, ${th["--gold"]} 240deg 360deg)`,
+                  boxShadow: th.key === theme ? `0 0 0 2px ${th["--gold2"]}` : "none",
+                }}
+              >
+                {th.key === theme && <span className="theme-swatch-check">✓</span>}
+              </span>
+              <span className="theme-option-text">
+                <span className="theme-option-name">{th.name}</span>
+                <span className="theme-option-name-en">{th.nameEn}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
 // LANGUAGE CONTEXT
 // ════════════════════════════════════════════════════════════════
 const LangContext = createContext("bn");
@@ -46,6 +131,7 @@ const T = {
     saved:          "সংরক্ষিত",
     about:          "পরিচয়",
     howToUse:       "কীভাবে ব্যবহার করবেন",
+    theme:          "থিম",
     todayAyah:      "আজকের আয়াত",
     todayAyahAr:    "آية اليوم",
     quickLookup:    "দ্রুত লুকআপ",
@@ -123,6 +209,7 @@ const T = {
     saved:          "Saved",
     about:          "About",
     howToUse:       "How to Use",
+    theme:          "Theme",
     todayAyah:      "Ayah of the Day",
     todayAyahAr:    "آية اليوم",
     quickLookup:    "Quick Lookup",
@@ -197,7 +284,7 @@ const T = {
 // APP
 // ════════════════════════════════════════════════════════════════
 export default function App() {
-  const { theme, cycleTheme } = useTheme();
+  const { theme, selectTheme, themeList } = useTheme();
   const audio = useAudio();
   const [lang, setLang]             = useState(getSavedLang());
   const t                           = T[lang];
@@ -216,8 +303,6 @@ export default function App() {
   function navigate(p, data = null) {
     setPage(p); setPageData(data); window.scrollTo(0, 0);
   }
-
-  const themeIcons = { noor: "☀️", layl: "🌙", sabz: "📜" };
 
   const NAV_ITEMS = [
     { id: "home",          icon: "🏠", label: t.home },
@@ -253,7 +338,7 @@ export default function App() {
           </nav>
           <div className="sidebar-footer">
             <button className="sidebar-ctrl" onClick={() => setShowHowTo(true)}>? {t.howToUse}</button>
-            <button className="sidebar-ctrl" onClick={cycleTheme}>{themeIcons[theme]} Theme</button>
+            <ThemeSwitcher theme={theme} themeList={themeList} selectTheme={selectTheme} label={t.theme || "Theme"} variant="sidebar" />
             <button className="sidebar-ctrl" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"} Language</button>
           </div>
         </aside>
@@ -269,7 +354,7 @@ export default function App() {
             <div className="topnav-actions">
               <button className="nav-btn" onClick={() => setShowHowTo(true)}>?</button>
               <button className="nav-btn" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"}</button>
-              <button className="nav-btn" onClick={cycleTheme}>{themeIcons[theme]}</button>
+              <ThemeSwitcher theme={theme} themeList={themeList} selectTheme={selectTheme} variant="topnav" />
             </div>
           </nav>
 
@@ -1050,6 +1135,14 @@ const BASE_CSS = `
     --warn:#6e3810;--warn-bg:#fdf6ec;--pattern:rgba(26,78,40,0.06);
     --sidebar-bg:#142010;--sidebar-ink:rgba(250,248,242,0.9);--sidebar-border:rgba(176,136,40,0.2);
   }
+  [data-theme="zill"]{
+    --bg:#000000;--bg2:#0a0a0a;--bg3:#141414;
+    --ink:#f5f2e8;--ink2:#c2b9a0;--ink3:#78705e;
+    --gold:#d4af37;--gold2:#f0c860;--green:#10b981;--green2:#34d399;
+    --border:rgba(212,175,55,0.16);--shadow:rgba(0,0,0,0.7);
+    --warn:#f0a868;--warn-bg:rgba(240,168,104,0.08);--pattern:rgba(212,175,55,0.03);
+    --sidebar-bg:#000000;--sidebar-ink:rgba(245,242,232,0.92);--sidebar-border:rgba(212,175,55,0.14);
+  }
 
   html{font-size:16px;scroll-behavior:smooth;}
   body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
@@ -1326,4 +1419,95 @@ const BASE_CSS = `
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
   ::-webkit-scrollbar-thumb:hover{background:var(--gold);}
+
+  /* ── Theme switcher ──────────────────────────────────────────── */
+  .theme-switcher{position:relative;}
+
+  .theme-trigger{
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    font-family:'Hind Siliguri',sans-serif;
+    transition:transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  }
+  .theme-trigger-icon{
+    display:inline-block;font-size:1rem;line-height:1;
+    transition:transform 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  .theme-trigger-caret{
+    font-size:0.6rem;opacity:0.6;transition:transform 0.25s ease;
+    display:inline-block;
+  }
+  .theme-trigger-open .theme-trigger-caret{transform:rotate(180deg);}
+  .theme-trigger-pop .theme-trigger-icon{animation:themeIconPop 0.42s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes themeIconPop{
+    0%{transform:scale(1) rotate(0deg);}
+    35%{transform:scale(1.35) rotate(-14deg);}
+    65%{transform:scale(0.92) rotate(10deg);}
+    100%{transform:scale(1) rotate(0deg);}
+  }
+
+  /* Sidebar variant: full-width row matching the other sidebar controls */
+  .theme-switcher-sidebar .theme-trigger{
+    width:100%;padding:9px 20px;background:none;border:none;
+    color:var(--sidebar-ink);opacity:0.5;font-size:0.78rem;text-align:left;
+  }
+  .theme-switcher-sidebar .theme-trigger:hover, .theme-switcher-sidebar .theme-trigger-open{opacity:0.9;}
+  .theme-switcher-sidebar .theme-trigger-label{flex:1;}
+  .theme-switcher-sidebar .theme-popover{left:14px;right:14px;bottom:calc(100% + 8px);}
+
+  /* Topnav variant: matches the circular icon buttons beside it */
+  .theme-switcher-topnav .theme-trigger{
+    width:34px;height:34px;border-radius:50%;
+    border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);
+    color:white;justify-content:center;
+  }
+  .theme-switcher-topnav .theme-trigger:hover, .theme-switcher-topnav .theme-trigger-open{background:rgba(255,255,255,0.18);}
+  .theme-switcher-topnav .theme-trigger-label{display:none;}
+  .theme-switcher-topnav .theme-trigger-caret{display:none;}
+  .theme-switcher-topnav .theme-popover{right:0;top:calc(100% + 10px);}
+
+  .theme-popover{
+    position:absolute;z-index:200;min-width:200px;
+    background:var(--bg3);border:1px solid var(--border);border-radius:14px;
+    box-shadow:0 12px 32px var(--shadow);padding:8px;
+    display:flex;flex-direction:column;gap:2px;
+    transform-origin:top;
+    animation:themePopIn 0.2s cubic-bezier(.22,.61,.36,1);
+  }
+  @keyframes themePopIn{
+    from{opacity:0;transform:scale(0.92) translateY(-4px);}
+    to{opacity:1;transform:scale(1) translateY(0);}
+  }
+  .theme-switcher-sidebar .theme-popover{
+    transform-origin:bottom;
+    animation:themePopInUp 0.2s cubic-bezier(.22,.61,.36,1);
+  }
+  @keyframes themePopInUp{
+    from{opacity:0;transform:scale(0.92) translateY(4px);}
+    to{opacity:1;transform:scale(1) translateY(0);}
+  }
+
+  .theme-option{
+    display:flex;align-items:center;gap:10px;width:100%;
+    padding:8px 10px;border:none;background:none;border-radius:9px;
+    cursor:pointer;text-align:left;color:var(--ink);
+    opacity:0;transform:translateY(4px);
+    animation:themeOptionIn 0.25s ease forwards;
+    transition:background 0.15s ease, transform 0.12s ease;
+  }
+  @keyframes themeOptionIn{to{opacity:1;transform:translateY(0);}}
+  .theme-option:hover{background:var(--bg2);}
+  .theme-option:active{transform:scale(0.98);}
+  .theme-option-active{background:var(--bg2);}
+
+  .theme-swatch{
+    position:relative;width:26px;height:26px;border-radius:50%;flex-shrink:0;
+    display:grid;place-items:center;
+    transition:box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .theme-option:hover .theme-swatch{transform:scale(1.08);}
+  .theme-swatch-check{font-size:0.62rem;color:var(--gold2);font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.5);}
+
+  .theme-option-text{display:flex;flex-direction:column;line-height:1.25;}
+  .theme-option-name{font-size:0.84rem;font-weight:600;}
+  .theme-option-name-en{font-size:0.66rem;color:var(--ink3);}
 `;
