@@ -65,6 +65,25 @@ export const THEMES = {
     "--warn-bg":   "#fff8ed",
     "--pattern":   "rgba(26,92,52,0.05)",
   },
+  zill: {
+    name: "ছায়া",
+    nameEn: "Zill",
+    "--bg":        "#000000",
+    "--bg2":       "#0a0a0a",
+    "--bg3":       "#141414",
+    "--ink":       "#f5f2e8",
+    "--ink2":      "#c2b9a0",
+    "--ink3":      "#78705e",
+    "--gold":      "#d4af37",
+    "--gold2":     "#f0c860",
+    "--green":     "#10b981",
+    "--green2":    "#34d399",
+    "--border":    "rgba(212,175,55,0.16)",
+    "--shadow":    "rgba(0,0,0,0.7)",
+    "--warn":      "#f0a868",
+    "--warn-bg":   "rgba(240,168,104,0.08)",
+    "--pattern":   "rgba(212,175,55,0.03)",
+  },
 };
 
 // ── Word → Arabic map ────────────────────────────────────────────
