@@ -18,9 +18,20 @@ export function useTheme() {
   function cycleTheme() {
     const keys  = Object.keys(THEMES);
     const next  = keys[(keys.indexOf(theme) + 1) % keys.length];
-    setTheme(next);
-    saveTheme(next);
+    selectTheme(next);
   }
 
-  return { theme, cycleTheme, themeMeta: THEMES[theme] };
+  function selectTheme(key) {
+    if (!THEMES[key]) return;
+    setTheme(key);
+    saveTheme(key);
+  }
+
+  return {
+    theme,
+    cycleTheme,
+    selectTheme,
+    themeMeta: THEMES[theme],
+    themeList: Object.entries(THEMES).map(([key, meta]) => ({ key, ...meta })),
+  };
 }
