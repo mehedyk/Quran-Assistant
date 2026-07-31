@@ -44,6 +44,14 @@ function getAyahNumber(surah, ayah) {
   return SURAH_OFFSETS[surah - 1] + parseInt(ayah);
 }
 
+// Used by the Surah page / Read Mode to build a "play the whole
+// surah" queue client-side — every verse in fetchSurahAyat already
+// carries its verse_number, so no per-ayah network round trip is
+// needed just to get the audio URL.
+export function getAyahAudioUrl(surah, ayah) {
+  return `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${getAyahNumber(surah, ayah)}.mp3`;
+}
+
 export async function fetchSurahMeta(num) {
   const res = await fetch(`${QURAN_API}/chapters/${num}?language=en`);
   if (!res.ok) throw new Error("সূরা পাওয়া যায়নি");
