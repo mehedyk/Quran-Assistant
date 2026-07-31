@@ -3,6 +3,8 @@ const KEYS = {
   RECENT:    "hadi_recent",
   THEME:     "hadi_theme",
   FIRST:     "hadi_first_visit",
+  SIDEBAR:   "hadi_sidebar_collapsed",
+  READ_LANG: "hadi_read_lang",
 };
 
 // ── Bookmarks ────────────────────────────────────────────────────
@@ -40,7 +42,7 @@ export function addRecentSearch(query) {
 
 // ── Theme ────────────────────────────────────────────────────────
 export function getSavedTheme() {
-  return localStorage.getItem(KEYS.THEME) || "noor";
+  return localStorage.getItem(KEYS.THEME) || "zuhr";
 }
 
 export function saveTheme(theme) {
@@ -52,4 +54,24 @@ export function isFirstVisit() {
   const v = !localStorage.getItem(KEYS.FIRST);
   if (v) localStorage.setItem(KEYS.FIRST, "1");
   return v;
+}
+
+// ── Sidebar collapse state ───────────────────────────────────────
+export function getSavedSidebarState() {
+  return localStorage.getItem(KEYS.SIDEBAR) === "1";
+}
+
+export function saveSidebarState(collapsed) {
+  localStorage.setItem(KEYS.SIDEBAR, collapsed ? "1" : "0");
+}
+
+// ── Read Mode translation-strip language ─────────────────────────
+// "off" | "bn" | "en" — which translation (if any) shows beneath
+// the Arabic in the book reader.
+export function getSavedReadLang() {
+  return localStorage.getItem(KEYS.READ_LANG) || "off";
+}
+
+export function saveReadLang(v) {
+  localStorage.setItem(KEYS.READ_LANG, v);
 }
