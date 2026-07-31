@@ -6,85 +6,123 @@ export const TRANSLATION_EN = 131;  // Dr. Mustafa Khattab
 export const TRANSLATION_BN = 161;  // মুহিউদ্দীন খান
 export const TOTAL_AYAT     = 6236;
 
-// ── Themes ──────────────────────────────────────────────────────
+// ── Themes: the 5 waqt (prayer-time) palette ─────────────────────
+// Chromatic progression across the day, engineered for eye comfort
+// (see design notes): Fajr's pre-dawn mist -> Zuhr's sky-grounded
+// zenith gold -> Asr's amber/copper afternoon -> Maghrib's coral/
+// violet dusk -> Isha's midnight navy/gold. Each stage's anchor
+// colors come straight from the palette brief; the rest of the
+// variable set is derived to stay tonally continuous with its
+// neighbours so the arc reads as one unbroken sky, not five
+// unrelated swatches.
 export const THEMES = {
-  noor: {
-    name: "নূর",
-    nameEn: "Noor",
-    "--bg":        "#f7f0e3",
-    "--bg2":       "#ede4cc",
+  fajr: {
+    name: "ফজর",
+    nameEn: "Fajr",
+    "--bg":        "#ece6da",
+    "--bg2":       "#dfd6c4",
+    "--bg3":       "#fffdf8",
+    "--ink":       "#20272f",
+    "--ink2":      "#3b4856",
+    "--ink3":      "#6e7885",
+    "--gold":      "#b49b76",
+    "--gold2":     "#d2ba92",
+    "--green":     "#33574a",
+    "--green2":    "#47705f",
+    "--border":    "rgba(59,72,86,0.18)",
+    "--shadow":    "rgba(35,43,51,0.10)",
+    "--warn":      "#7c4a2e",
+    "--warn-bg":   "#fbf3e9",
+    "--pattern":   "rgba(59,72,86,0.05)",
+  },
+  zuhr: {
+    name: "যুহর",
+    nameEn: "Zuhr",
+    "--bg":        "#f7f2e1",
+    "--bg2":       "#efe4c4",
     "--bg3":       "#ffffff",
-    "--ink":       "#1a1209",
-    "--ink2":      "#4a3728",
-    "--ink3":      "#7a6a58",
-    "--gold":      "#b8832e",
-    "--gold2":     "#d4a855",
-    "--green":     "#1e4d30",
-    "--green2":    "#2d6b44",
-    "--border":    "rgba(184,131,46,0.25)",
-    "--shadow":    "rgba(26,18,9,0.12)",
+    "--ink":       "#12293c",
+    "--ink2":      "#2c5e8a",
+    "--ink3":      "#5a82a0",
+    "--gold":      "#d9a83b",
+    "--gold2":     "#f3ca63",
+    "--green":     "#1f6b4a",
+    "--green2":    "#2e8b63",
+    "--border":    "rgba(44,94,138,0.20)",
+    "--shadow":    "rgba(22,50,74,0.12)",
     "--warn":      "#7c3a0e",
     "--warn-bg":   "#fff7ed",
-    "--pattern":   "rgba(184,131,46,0.06)",
+    "--pattern":   "rgba(44,94,138,0.05)",
   },
-  layl: {
-    name: "লায়ল",
-    nameEn: "Layl",
-    "--bg":        "#0d1f1a",
-    "--bg2":       "#142820",
-    "--bg3":       "#1c3328",
-    "--ink":       "#f0e8d8",
-    "--ink2":      "#c8b898",
-    "--ink3":      "#8a7a65",
-    "--gold":      "#c8963e",
-    "--gold2":     "#e8b660",
-    "--green":     "#4a9e6a",
-    "--green2":    "#5db87c",
-    "--border":    "rgba(200,150,62,0.2)",
-    "--shadow":    "rgba(0,0,0,0.4)",
-    "--warn":      "#e8a87c",
-    "--warn-bg":   "rgba(232,168,124,0.1)",
-    "--pattern":   "rgba(200,150,62,0.04)",
+  asr: {
+    name: "আসর",
+    nameEn: "Asr",
+    "--bg":        "#f5e4ce",
+    "--bg2":       "#ead0ae",
+    "--bg3":       "#fffbf5",
+    "--ink":       "#341a0f",
+    "--ink2":      "#6b3420",
+    "--ink3":      "#9c6a4e",
+    "--gold":      "#d9822b",
+    "--gold2":     "#e8a34f",
+    "--green":     "#3e5c34",
+    "--green2":    "#547a46",
+    "--border":    "rgba(156,67,40,0.22)",
+    "--shadow":    "rgba(59,31,18,0.14)",
+    "--warn":      "#7c2a0e",
+    "--warn-bg":   "#fff3ea",
+    "--pattern":   "rgba(217,130,43,0.06)",
   },
-  sabz: {
-    name: "সবজ",
-    nameEn: "Sabz",
-    "--bg":        "#f0f7f2",
-    "--bg2":       "#ddeee3",
-    "--bg3":       "#ffffff",
-    "--ink":       "#0d1f16",
-    "--ink2":      "#1e4030",
-    "--ink3":      "#4a7a5a",
-    "--gold":      "#a06820",
-    "--gold2":     "#c88a30",
-    "--green":     "#1a5c34",
-    "--green2":    "#227842",
-    "--border":    "rgba(26,92,52,0.2)",
-    "--shadow":    "rgba(13,31,22,0.1)",
-    "--warn":      "#7c4a0e",
-    "--warn-bg":   "#fff8ed",
-    "--pattern":   "rgba(26,92,52,0.05)",
+  maghrib: {
+    name: "মাগরিব",
+    nameEn: "Maghrib",
+    "--bg":        "#2a1e2b",
+    "--bg2":       "#35263a",
+    "--bg3":       "#402e46",
+    "--ink":       "#f3e6e2",
+    "--ink2":      "#e0c2bc",
+    "--ink3":      "#a98a93",
+    "--gold":      "#c85250",
+    "--gold2":     "#e0776f",
+    "--green":     "#3f6b57",
+    "--green2":    "#578c73",
+    "--border":    "rgba(200,82,80,0.22)",
+    "--shadow":    "rgba(20,10,20,0.45)",
+    "--warn":      "#f0a87c",
+    "--warn-bg":   "rgba(240,168,124,0.12)",
+    "--pattern":   "rgba(200,82,80,0.06)",
   },
-  zill: {
-    name: "ছায়া",
-    nameEn: "Zill",
-    "--bg":        "#000000",
-    "--bg2":       "#0a0a0a",
-    "--bg3":       "#141414",
-    "--ink":       "#f5f2e8",
-    "--ink2":      "#c2b9a0",
-    "--ink3":      "#78705e",
-    "--gold":      "#d4af37",
-    "--gold2":     "#f0c860",
-    "--green":     "#10b981",
-    "--green2":    "#34d399",
-    "--border":    "rgba(212,175,55,0.16)",
-    "--shadow":    "rgba(0,0,0,0.7)",
+  isha: {
+    name: "এশা",
+    nameEn: "Isha",
+    "--bg":        "#0f172a",
+    "--bg2":       "#16213a",
+    "--bg3":       "#1e2b47",
+    "--ink":       "#f1ead9",
+    "--ink2":      "#c9bfa0",
+    "--ink3":      "#7c8698",
+    "--gold":      "#eab308",
+    "--gold2":     "#f4c430",
+    "--green":     "#34b27a",
+    "--green2":    "#4ccb90",
+    "--border":    "rgba(234,179,8,0.18)",
+    "--shadow":    "rgba(0,0,0,0.55)",
     "--warn":      "#f0a868",
     "--warn-bg":   "rgba(240,168,104,0.08)",
-    "--pattern":   "rgba(212,175,55,0.03)",
+    "--pattern":   "rgba(234,179,8,0.04)",
   },
 };
+
+// Order matters: this is the sequence the sun-path arc and the
+// corner orb's cycle button follow, left (dawn) to right (night).
+export const WAQT_ORDER = ["fajr", "zuhr", "asr", "maghrib", "isha"];
+
+// Angle (degrees) of each waqt's node along the semicircular arc,
+// measured like a protractor sitting on the horizon: 180 deg = far
+// left (Fajr), 90 deg = the top of the arc, 0 deg = far right (Isha).
+export const WAQT_ANGLES = { fajr: 180, zuhr: 135, asr: 90, maghrib: 45, isha: 0 };
+
+export const THEME_ICONS = { fajr: "🌅", zuhr: "☀️", asr: "🌤️", maghrib: "🌇", isha: "🌙" };
 
 // ── Word → Arabic map ────────────────────────────────────────────
 export const WORD_TO_ARABIC = {
