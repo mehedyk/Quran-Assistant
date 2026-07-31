@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { THEMES } from "../utils/constants.js";
+import { THEMES, WAQT_ORDER, WAQT_ANGLES } from "../utils/constants.js";
 import { getSavedTheme, saveTheme } from "../utils/storage.js";
 
 export function useTheme() {
@@ -15,9 +15,9 @@ export function useTheme() {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
+  // Follows WAQT_ORDER (dawn -> night), wrapping back to Fajr after Isha.
   function cycleTheme() {
-    const keys  = Object.keys(THEMES);
-    const next  = keys[(keys.indexOf(theme) + 1) % keys.length];
+    const next = WAQT_ORDER[(WAQT_ORDER.indexOf(theme) + 1) % WAQT_ORDER.length];
     selectTheme(next);
   }
 
@@ -32,6 +32,7 @@ export function useTheme() {
     cycleTheme,
     selectTheme,
     themeMeta: THEMES[theme],
-    themeList: Object.entries(THEMES).map(([key, meta]) => ({ key, ...meta })),
+    themeAngle: WAQT_ANGLES[theme] ?? 90,
+    themeList: WAQT_ORDER.map(key => ({ key, ...THEMES[key], angle: WAQT_ANGLES[key] })),
   };
 }
