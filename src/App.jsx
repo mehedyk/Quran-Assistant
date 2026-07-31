@@ -1,15 +1,20 @@
-import { useState, useEffect, useRef, createContext, useContext } from "react";
+import { useState, useEffect, useRef, useMemo, createContext, useContext } from "react";
 import { useTheme } from "./hooks/useTheme.js";
-import { useAudio } from "./hooks/useAudio.js";
-import { THEMES, getAyahOfTheDay, stripHtml } from "./utils/constants.js";
+import { useAudioQueue } from "./hooks/useAudioQueue.js";
+import { useSidebar } from "./hooks/useSidebar.js";
+import { getAyahOfTheDay, stripHtml } from "./utils/constants.js";
 import {
   fetchAyah, fetchSurahMeta, fetchSurahAyat,
-  fetchAllSurahs, searchByWord, callAI
+  fetchAllSurahs, searchByWord, callAI, getAyahAudioUrl
 } from "./utils/api.js";
 import {
   getBookmarks, addBookmark, removeBookmark, isBookmarked,
   getRecentSearches, addRecentSearch, isFirstVisit
 } from "./utils/storage.js";
+import ThemeOrb from "./components/layout/ThemeOrb.jsx";
+import SurahCarousel from "./components/home/SurahCarousel.jsx";
+import ReadMode from "./components/readmode/ReadMode.jsx";
+import NowPlayingBar from "./components/surah/NowPlayingBar.jsx";
 
 // ════════════════════════════════════════════════════════════════
 // BRAND LOGO — inline SVG so it inherits theme colors via currentColor
@@ -25,91 +30,6 @@ function Logo({ size = 34, className = "" }) {
       <path d="M63 22 A13 13 0 1 0 63 46 A10.5 10.5 0 1 1 63 22 Z" fill="var(--gold2)" className="brand-logo-crescent" />
       <path d="M40 20 L41.6 24.6 L46.4 24.6 L42.6 27.6 L44 32.2 L40 29.4 L36 32.2 L37.4 27.6 L33.6 24.6 L38.4 24.6 Z" fill="var(--gold2)" className="brand-logo-star" />
     </svg>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// THEME SWITCHER — animated trigger + popover with live swatch previews
-// ════════════════════════════════════════════════════════════════
-const THEME_ICONS = { noor: "☀️", layl: "🌙", sabz: "📜", zill: "🌑" };
-
-function ThemeSwitcher({ theme, themeList, selectTheme, label, variant = "sidebar" }) {
-  const [open, setOpen] = useState(false);
-  const [pop, setPop]   = useState(false);
-  const wrapRef = useRef(null);
-  const prevTheme = useRef(theme);
-
-  // Pop/bounce the trigger icon whenever the active theme actually changes.
-  useEffect(() => {
-    if (prevTheme.current === theme) return;
-    prevTheme.current = theme;
-    setPop(true);
-    const id = setTimeout(() => setPop(false), 420);
-    return () => clearTimeout(id);
-  }, [theme]);
-
-  // Close on outside click / Escape.
-  useEffect(() => {
-    if (!open) return;
-    function onDown(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); }
-    function onKey(e) { if (e.key === "Escape") setOpen(false); }
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  function pick(key) {
-    selectTheme(key);
-    setOpen(false);
-  }
-
-  return (
-    <div className={`theme-switcher theme-switcher-${variant}`} ref={wrapRef}>
-      <button
-        type="button"
-        className={`theme-trigger ${pop ? "theme-trigger-pop" : ""} ${open ? "theme-trigger-open" : ""}`}
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        aria-haspopup="true"
-      >
-        <span className="theme-trigger-icon">{THEME_ICONS[theme] || "🎨"}</span>
-        {label && <span className="theme-trigger-label">{label}</span>}
-        <span className="theme-trigger-caret">▾</span>
-      </button>
-
-      {open && (
-        <div className={`theme-popover theme-popover-${variant}`} role="menu">
-          {themeList.map((th, i) => (
-            <button
-              type="button"
-              key={th.key}
-              className={`theme-option ${th.key === theme ? "theme-option-active" : ""}`}
-              style={{ transitionDelay: `${i * 30}ms`, animationDelay: `${i * 45}ms` }}
-              onClick={() => pick(th.key)}
-              role="menuitemradio"
-              aria-checked={th.key === theme}
-            >
-              <span
-                className="theme-swatch"
-                style={{
-                  background: `conic-gradient(${th["--bg"]} 0deg 120deg, ${th["--green"]} 120deg 240deg, ${th["--gold"]} 240deg 360deg)`,
-                  boxShadow: th.key === theme ? `0 0 0 2px ${th["--gold2"]}` : "none",
-                }}
-              >
-                {th.key === theme && <span className="theme-swatch-check">✓</span>}
-              </span>
-              <span className="theme-option-text">
-                <span className="theme-option-name">{th.name}</span>
-                <span className="theme-option-name-en">{th.nameEn}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -132,6 +52,12 @@ const T = {
     about:          "পরিচয়",
     howToUse:       "কীভাবে ব্যবহার করবেন",
     theme:          "থিম",
+    discoverSurahs: "সূরা আবিষ্কার করুন",
+    playSurah:      "সম্পূর্ণ সূরা শুনুন",
+    readMode:       "পড়ার মোড",
+    beginReading:   "পড়া শুরু করুন →",
+    collapseSidebar:"সাইডবার লুকান",
+    expandSidebar:  "সাইডবার দেখান",
     todayAyah:      "আজকের আয়াত",
     todayAyahAr:    "آية اليوم",
     quickLookup:    "দ্রুত লুকআপ",
@@ -210,6 +136,12 @@ const T = {
     about:          "About",
     howToUse:       "How to Use",
     theme:          "Theme",
+    discoverSurahs: "Discover Surahs",
+    playSurah:      "Play Whole Surah",
+    readMode:       "Read Mode",
+    beginReading:   "Begin Reading →",
+    collapseSidebar:"Hide Sidebar",
+    expandSidebar:  "Show Sidebar",
     todayAyah:      "Ayah of the Day",
     todayAyahAr:    "آية اليوم",
     quickLookup:    "Quick Lookup",
@@ -284,8 +216,9 @@ const T = {
 // APP
 // ════════════════════════════════════════════════════════════════
 export default function App() {
-  const { theme, selectTheme, themeList } = useTheme();
-  const audio = useAudio();
+  const { theme, selectTheme, cycleTheme, themeMeta, themeList } = useTheme();
+  const audio    = useAudioQueue();
+  const sidebar  = useSidebar();
   const [lang, setLang]             = useState(getSavedLang());
   const t                           = T[lang];
   const [page, setPage]             = useState("home");
@@ -302,6 +235,7 @@ export default function App() {
 
   function navigate(p, data = null) {
     setPage(p); setPageData(data); window.scrollTo(0, 0);
+    sidebar.closeMobile();
   }
 
   const NAV_ITEMS = [
@@ -318,9 +252,16 @@ export default function App() {
       <style>{BASE_CSS}</style>
       {showHowTo && <HowToModal t={t} onClose={() => setShowHowTo(false)} />}
 
-      <div className="app">
-        {/* SIDEBAR — desktop */}
-        <aside className="sidebar">
+      {/* Persistent, on every screen, corner theme control */}
+      <ThemeOrb theme={theme} themeMeta={themeMeta} themeList={themeList}
+        selectTheme={selectTheme} cycleTheme={cycleTheme} label={t.theme} />
+
+      <div className={`app ${sidebar.collapsed ? "sidebar-collapsed" : ""}`}>
+        {/* Mobile overlay scrim behind the drawer */}
+        {sidebar.mobileOpen && <div className="sidebar-scrim" onClick={sidebar.closeMobile} />}
+
+        {/* SIDEBAR — desktop rail (collapsible) + mobile drawer */}
+        <aside className={`sidebar ${sidebar.mobileOpen ? "sidebar-mobile-open" : ""}`}>
           <div className="sidebar-brand">
             <button className="sidebar-logo-btn" onClick={() => navigate("home")}>
               <Logo size={38} />
@@ -330,31 +271,37 @@ export default function App() {
           </div>
           <nav className="sidebar-nav">
             {NAV_ITEMS.map(item => (
-              <button key={item.id} className={`sidebar-link ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)}>
+              <button key={item.id} className={`sidebar-link ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)} title={item.label}>
                 <span className="sidebar-link-icon">{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="sidebar-link-text">{item.label}</span>
               </button>
             ))}
           </nav>
           <div className="sidebar-footer">
-            <button className="sidebar-ctrl" onClick={() => setShowHowTo(true)}>? {t.howToUse}</button>
-            <ThemeSwitcher theme={theme} themeList={themeList} selectTheme={selectTheme} label={t.theme || "Theme"} variant="sidebar" />
-            <button className="sidebar-ctrl" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"} Language</button>
+            <button className="sidebar-ctrl" onClick={() => setShowHowTo(true)}>? <span className="sidebar-ctrl-text">{t.howToUse}</span></button>
+            <button className="sidebar-ctrl" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"} <span className="sidebar-ctrl-text">Language</span></button>
           </div>
         </aside>
 
         {/* CONTENT */}
         <div className="content-wrap">
-          {/* TOP NAV — mobile */}
+          {/* TOP NAV */}
           <nav className="topnav">
+            <button
+              className={`hamburger ${sidebar.mobileOpen ? "hamburger-open" : ""}`}
+              onClick={() => { sidebar.toggleMobile(); sidebar.toggle(); }}
+              aria-label={sidebar.collapsed ? t.expandSidebar : t.collapseSidebar}
+              aria-expanded={!sidebar.collapsed}
+            >
+              <span /><span /><span />
+            </button>
             <button className="topnav-logo-btn" onClick={() => navigate("home")}>
               <Logo size={30} />
               <span className="topnav-logo">هادي</span>
             </button>
             <div className="topnav-actions">
               <button className="nav-btn" onClick={() => setShowHowTo(true)}>?</button>
-              <button className="nav-btn" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"}</button>
-              <ThemeSwitcher theme={theme} themeList={themeList} selectTheme={selectTheme} variant="topnav" />
+              <button className="nav-btn lang-nav-btn" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"}</button>
             </div>
           </nav>
 
@@ -364,10 +311,13 @@ export default function App() {
             {page === "surah-browser" && <SurahBrowserPage t={t} navigate={navigate} />}
             {page === "ayah"          && <AyahPage t={t} data={pageData} audio={audio} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
             {page === "surah"         && <SurahPage t={t} data={pageData} navigate={navigate} audio={audio} />}
+            {page === "readmode"      && <ReadMode t={t} data={pageData} audio={audio} onClose={() => navigate("surah", pageData)} />}
             {page === "bookmarks"     && <BookmarksPage key={bookmarkTick} t={t} navigate={navigate} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
             {page === "ask"           && <AskPage t={t} lang={lang} />}
             {page === "about"         && <AboutPage t={t} lang={lang} />}
           </main>
+
+          <NowPlayingBar t={t} audio={audio} />
 
           {/* BOTTOM TAB BAR — mobile */}
           <div className="tab-bar">
@@ -460,6 +410,8 @@ function HomePage({ t, navigate, audio }) {
             ? <AyahCard t={t} ayah={aotd} audio={audio} onTap={() => navigate("ayah", aotd)} />
             : null}
       </div>
+
+      <SurahCarousel t={t} navigate={navigate} />
 
       <div className="section">
         <div className="nav-cards">
@@ -705,6 +657,17 @@ function AyahPage({ t, data, audio, onBookmarkChange }) {
 // ════════════════════════════════════════════════════════════════
 function SurahPage({ t, data, navigate, audio }) {
   const [expanded, setExpanded] = useState({});
+  const queueItems = useMemo(() => {
+    if (!data) return [];
+    return data.ayat.map(v => ({
+      url: getAyahAudioUrl(data.meta.id, v.verse_number),
+      key: `${data.meta.id}:${v.verse_number}`,
+      surahNum: data.meta.id,
+      ayahNum: v.verse_number,
+      surahName: data.meta.name_simple,
+    }));
+  }, [data]);
+
   if (!data) return null;
   const { meta, ayat } = data;
   const revPlace = meta?.revelation_place === "makkah" ? t.makki : t.madani;
@@ -717,6 +680,14 @@ function SurahPage({ t, data, navigate, audio }) {
     [t.surahNum,        meta?.id],
   ].filter(([,v]) => v);
 
+  const isThisSurahPlaying = audio.isPlaying && audio.current?.surahNum === meta?.id;
+
+  function togglePlaySurah() {
+    if (isThisSurahPlaying) { audio.togglePause(); return; }
+    if (audio.current?.surahNum === meta?.id && audio.current) { audio.togglePause(); return; }
+    audio.playQueue(queueItems, 0);
+  }
+
   return (
     <div className="page">
       <div className="surah-header-card">
@@ -727,6 +698,13 @@ function SurahPage({ t, data, navigate, audio }) {
           {rows.map(([l,v]) => <tr key={l}><td className="info-lbl">{l}</td><td className="info-val">{v}</td></tr>)}
         </tbody></table>
         <a className="ref-link-light" href={`https://quran.com/${meta?.id}`} target="_blank" rel="noopener noreferrer">{t.verifyShort}</a>
+        <button className="surah-play-btn" onClick={togglePlaySurah}>
+          {isThisSurahPlaying ? `⏸ ${t.stop}` : `▶ ${t.playSurah}`}
+        </button>
+        <button className="ref-link-light" style={{marginTop:8, cursor:"pointer", background:"none", border:"none", width:"100%"}}
+          onClick={() => navigate("readmode", data)}>
+          📖 {t.readMode}
+        </button>
       </div>
 
       <div className="section">
@@ -734,10 +712,12 @@ function SurahPage({ t, data, navigate, audio }) {
         {ayat.map((v) => {
           const key  = `${meta?.id}:${v.verse_number}`;
           const isEx = expanded[key];
+          const isActive = audio.activeKey === key;
+          const isNext   = audio.nextKey === key;
           const bn   = v.translations?.find(tr => tr.resource_id === 161)?.text || "";
           const en   = v.translations?.find(tr => tr.resource_id === 131)?.text || "";
           return (
-            <div key={key} className="surah-ayah-row">
+            <div key={key} className={`surah-ayah-row ${isActive ? "ayah-active" : ""} ${isNext ? "ayah-next" : ""}`}>
               <div className="surah-ayah-top">
                 <span className="surah-ayah-num">{v.verse_number}</span>
                 <div className="surah-ayah-ar">{v.text_uthmani}</div>
@@ -755,9 +735,9 @@ function SurahPage({ t, data, navigate, audio }) {
                       onClick={() => fetchAyah(meta?.id, v.verse_number).then(d => navigate("ayah", d))}>
                       {t.detail}
                     </button>
-                    <button className="action-btn-sm"
-                      onClick={() => fetchAyah(meta?.id, v.verse_number).then(d => audio.play(d.audioUrl))}>
-                      {t.recite}
+                    <button className={`action-btn-sm ${isActive ? "active" : ""}`}
+                      onClick={() => isActive ? audio.togglePause() : audio.playQueue(queueItems, ayat.findIndex(a => a.verse_number === v.verse_number))}>
+                      {isActive ? (audio.isPlaying ? t.stop : t.recite) : t.recite}
                     </button>
                   </div>
                 </div>
@@ -1180,7 +1160,8 @@ const BASE_CSS = `
   }
 
   .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
-  .topnav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--green);position:sticky;top:0;z-index:100;}
+  .topnav{height:52px;display:flex;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--green);position:sticky;top:0;z-index:100;}
+  .topnav-actions{margin-left:auto;}
   .topnav-logo-btn{display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;}
   .topnav-logo{font-family:'UthmanNaskh',serif;font-size:1.4rem;color:var(--gold2);}
   .topnav-actions{display:flex;gap:6px;}
@@ -1420,94 +1401,210 @@ const BASE_CSS = `
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
   ::-webkit-scrollbar-thumb:hover{background:var(--gold);}
 
-  /* ── Theme switcher ──────────────────────────────────────────── */
-  .theme-switcher{position:relative;}
+  /* ══════════════════════════════════════════════════════════════
+     UI REBOOT — motion tokens, hamburger + collapsible sidebar,
+     theme orb + waqt arc, carousel, play-surah / read mode
+     ══════════════════════════════════════════════════════════════ */
 
-  .theme-trigger{
-    display:flex;align-items:center;gap:8px;cursor:pointer;
-    font-family:'Hind Siliguri',sans-serif;
-    transition:transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  /* Shared motion tokens: one easing + duration scale reused by every
+     interactive element so morphs read as one consistent language. */
+  :root{
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --ease-bounce:cubic-bezier(.34,1.56,.64,1);
+    --dur-fast:0.15s; --dur-base:0.28s; --dur-slow:0.5s;
   }
-  .theme-trigger-icon{
-    display:inline-block;font-size:1rem;line-height:1;
-    transition:transform 0.35s cubic-bezier(.34,1.56,.64,1);
-  }
-  .theme-trigger-caret{
-    font-size:0.6rem;opacity:0.6;transition:transform 0.25s ease;
-    display:inline-block;
-  }
-  .theme-trigger-open .theme-trigger-caret{transform:rotate(180deg);}
-  .theme-trigger-pop .theme-trigger-icon{animation:themeIconPop 0.42s cubic-bezier(.34,1.56,.64,1);}
-  @keyframes themeIconPop{
-    0%{transform:scale(1) rotate(0deg);}
-    35%{transform:scale(1.35) rotate(-14deg);}
-    65%{transform:scale(0.92) rotate(10deg);}
-    100%{transform:scale(1) rotate(0deg);}
-  }
+  @font-face{ font-family:'Reem Kufi'; font-display:swap; src:local('Reem Kufi'); }
+  @import url('https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;600&family=Aref+Ruqaa:wght@400;700&display=swap');
 
-  /* Sidebar variant: full-width row matching the other sidebar controls */
-  .theme-switcher-sidebar .theme-trigger{
-    width:100%;padding:9px 20px;background:none;border:none;
-    color:var(--sidebar-ink);opacity:0.5;font-size:0.78rem;text-align:left;
-  }
-  .theme-switcher-sidebar .theme-trigger:hover, .theme-switcher-sidebar .theme-trigger-open{opacity:0.9;}
-  .theme-switcher-sidebar .theme-trigger-label{flex:1;}
-  .theme-switcher-sidebar .theme-popover{left:14px;right:14px;bottom:calc(100% + 8px);}
-
-  /* Topnav variant: matches the circular icon buttons beside it */
-  .theme-switcher-topnav .theme-trigger{
-    width:34px;height:34px;border-radius:50%;
+  /* ── Hamburger (three lines <-> X) ───────────────────────────── */
+  .hamburger{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
     border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);
-    color:white;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    cursor:pointer;transition:background var(--dur-fast) ease;
   }
-  .theme-switcher-topnav .theme-trigger:hover, .theme-switcher-topnav .theme-trigger-open{background:rgba(255,255,255,0.18);}
-  .theme-switcher-topnav .theme-trigger-label{display:none;}
-  .theme-switcher-topnav .theme-trigger-caret{display:none;}
-  .theme-switcher-topnav .theme-popover{right:0;top:calc(100% + 10px);}
+  .hamburger:hover{background:rgba(255,255,255,0.16);}
+  .hamburger span{width:15px;height:2px;background:#fff;border-radius:2px;
+    transition:transform var(--dur-base) var(--ease), opacity var(--dur-fast) ease;}
+  .hamburger-open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+  .hamburger-open span:nth-child(2){opacity:0;transform:scaleX(0);}
+  .hamburger-open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
 
-  .theme-popover{
-    position:absolute;z-index:200;min-width:200px;
-    background:var(--bg3);border:1px solid var(--border);border-radius:14px;
-    box-shadow:0 12px 32px var(--shadow);padding:8px;
-    display:flex;flex-direction:column;gap:2px;
-    transform-origin:top;
-    animation:themePopIn 0.2s cubic-bezier(.22,.61,.36,1);
-  }
-  @keyframes themePopIn{
-    from{opacity:0;transform:scale(0.92) translateY(-4px);}
-    to{opacity:1;transform:scale(1) translateY(0);}
-  }
-  .theme-switcher-sidebar .theme-popover{
-    transform-origin:bottom;
-    animation:themePopInUp 0.2s cubic-bezier(.22,.61,.36,1);
-  }
-  @keyframes themePopInUp{
-    from{opacity:0;transform:scale(0.92) translateY(4px);}
-    to{opacity:1;transform:scale(1) translateY(0);}
+  /* ── Collapsible sidebar (desktop) ───────────────────────────── */
+  @media(min-width:768px){
+    .sidebar{transition:width var(--dur-base) var(--ease), opacity var(--dur-fast) ease, padding var(--dur-base) var(--ease);}
+    .app.sidebar-collapsed .sidebar{width:0!important;min-width:0;padding:0;border-right:none;opacity:0;overflow:hidden;}
+    .sidebar-link-text, .sidebar-ctrl-text{white-space:nowrap;}
   }
 
-  .theme-option{
-    display:flex;align-items:center;gap:10px;width:100%;
-    padding:8px 10px;border:none;background:none;border-radius:9px;
-    cursor:pointer;text-align:left;color:var(--ink);
-    opacity:0;transform:translateY(4px);
-    animation:themeOptionIn 0.25s ease forwards;
-    transition:background 0.15s ease, transform 0.12s ease;
+  /* ── Mobile drawer + scrim ────────────────────────────────────── */
+  .sidebar-scrim{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:290;animation:scrimIn var(--dur-base) ease;}
+  @keyframes scrimIn{from{opacity:0;}to{opacity:1;}}
+  @media(max-width:767.98px){
+    .sidebar-mobile-open{
+      display:flex!important;position:fixed;top:0;left:0;bottom:0;width:78vw;max-width:300px;
+      z-index:300;box-shadow:2px 0 30px rgba(0,0,0,0.5);
+      animation:drawerIn var(--dur-base) var(--ease) both;
+    }
+    @keyframes drawerIn{from{transform:translateX(-100%);}to{transform:translateX(0);}}
   }
-  @keyframes themeOptionIn{to{opacity:1;transform:translateY(0);}}
-  .theme-option:hover{background:var(--bg2);}
-  .theme-option:active{transform:scale(0.98);}
-  .theme-option-active{background:var(--bg2);}
 
-  .theme-swatch{
-    position:relative;width:26px;height:26px;border-radius:50%;flex-shrink:0;
-    display:grid;place-items:center;
-    transition:box-shadow 0.2s ease, transform 0.2s ease;
+  /* ── Persistent corner theme orb ─────────────────────────────── */
+  .theme-orb-wrap{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:250;}
+  @media(min-width:768px){.theme-orb-wrap{bottom:22px;}}
+  .theme-orb{
+    width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);
+    box-shadow:0 6px 20px var(--shadow), 0 0 0 0 rgba(255,255,255,0);
+    cursor:pointer;display:grid;place-items:center;font-size:1.35rem;
+    animation:orbPulse 3.6s ease-in-out infinite;
+    transition:transform var(--dur-fast) var(--ease);
   }
-  .theme-option:hover .theme-swatch{transform:scale(1.08);}
-  .theme-swatch-check{font-size:0.62rem;color:var(--gold2);font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.5);}
+  .theme-orb:active{transform:scale(0.92);}
+  @keyframes orbPulse{0%,100%{box-shadow:0 6px 20px var(--shadow), 0 0 0 0 rgba(255,255,255,0.25);}50%{box-shadow:0 6px 24px var(--shadow), 0 0 0 6px rgba(255,255,255,0);}}
+  .theme-orb-icon{filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4));}
 
-  .theme-option-text{display:flex;flex-direction:column;line-height:1.25;}
-  .theme-option-name{font-size:0.84rem;font-weight:600;}
-  .theme-option-name-en{font-size:0.66rem;color:var(--ink3);}
+  .theme-orb-panel{
+    position:absolute;bottom:calc(100% + 14px);right:0;width:min(320px,86vw);
+    background:var(--bg3);border:1px solid var(--border);border-radius:18px;
+    box-shadow:0 16px 40px var(--shadow);padding:16px 14px 8px;
+    transform-origin:bottom right;
+    animation:orbPanelIn var(--dur-base) var(--ease);
+  }
+  @keyframes orbPanelIn{from{opacity:0;transform:scale(0.9) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  .theme-orb-panel-hdr{font-size:0.78rem;font-weight:700;color:var(--ink2);text-align:center;margin-bottom:4px;}
+  .theme-orb-panel svg text{fill:var(--ink2);}
+
+  /* Ripple-wipe: a fixed circle that grows from the orb's screen
+     position, revealing the incoming theme's colors as one physical
+     event instead of an instant CSS-variable snap. */
+  .theme-wipe{
+    position:fixed;inset:0;z-index:400;pointer-events:none;
+    background:radial-gradient(circle at var(--orb-cx,100%) var(--orb-cy,100%), var(--wipe-gold), var(--wipe-bg) 55%);
+    clip-path:circle(0% at var(--orb-cx,100%) var(--orb-cy,100%));
+    animation:themeWipeGrow 0.76s var(--ease) forwards;
+  }
+  @keyframes themeWipeGrow{
+    0%{clip-path:circle(0% at var(--orb-cx,100%) var(--orb-cy,100%));opacity:1;}
+    60%{clip-path:circle(140% at var(--orb-cx,100%) var(--orb-cy,100%));opacity:1;}
+    100%{clip-path:circle(150% at var(--orb-cx,100%) var(--orb-cy,100%));opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .theme-orb{animation:none;} .theme-wipe{display:none;}
+  }
+
+  /* ── Surah carousel (home page) ──────────────────────────────── */
+  .carousel{display:flex;gap:10px;overflow-x:auto;padding:2px 18px 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .carousel::-webkit-scrollbar{height:0;}
+  .carousel-card{
+    scroll-snap-align:start;flex:0 0 132px;background:var(--bg3);border:1px solid var(--border);
+    border-radius:14px;padding:12px;text-align:center;cursor:pointer;
+    opacity:0;transform:translateY(10px) scale(0.96);
+    transition:transform var(--dur-base) var(--ease), box-shadow var(--dur-base) ease, border-color var(--dur-fast) ease, opacity var(--dur-base) var(--ease);
+  }
+  .carousel-card-in{opacity:1;transform:translateY(0) scale(1);}
+  .carousel-card:hover{border-color:var(--gold);box-shadow:0 8px 22px var(--shadow);transform:translateY(-3px);}
+  .carousel-skeleton{height:132px;flex:0 0 132px;}
+  .carousel-num{font-family:monospace;font-size:0.6rem;color:var(--gold);margin-bottom:4px;}
+  .carousel-ar{font-family:'UthmanNaskh',serif;font-size:1.15rem;color:var(--green);direction:rtl;margin-bottom:2px;}
+  .carousel-en{font-family:'Playfair Display',serif;font-size:0.72rem;color:var(--ink2);}
+  .carousel-bn{font-size:0.66rem;color:var(--ink3);margin-bottom:5px;}
+  .carousel-meta{display:flex;justify-content:space-between;font-size:0.58rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:4px;}
+
+  /* ── Play-surah + now-playing bar + per-ayah highlight ───────── */
+  .surah-play-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    margin-top:10px;padding:12px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1209;font-weight:700;
+    font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;
+    transition:transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) ease;
+    box-shadow:0 4px 14px var(--shadow);
+  }
+  .surah-play-btn:active{transform:scale(0.97);}
+
+  .now-playing-bar{
+    position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));left:0;right:0;z-index:150;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--green);color:#fff;padding:10px 14px;
+    animation:nowPlayingIn var(--dur-base) var(--ease);
+  }
+  @media(min-width:768px){.now-playing-bar{position:sticky;bottom:0;}}
+  @keyframes nowPlayingIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  .now-playing-info{display:flex;flex-direction:column;line-height:1.3;font-size:0.78rem;overflow:hidden;}
+  .now-playing-surah{font-weight:700;color:var(--gold2);}
+  .now-playing-ayah{font-family:monospace;font-size:0.66rem;opacity:0.75;}
+  .now-playing-progress{font-size:0.6rem;opacity:0.6;}
+  .now-playing-controls{display:flex;gap:4px;flex-shrink:0;}
+  .now-playing-controls button{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;transition:background var(--dur-fast) ease;}
+  .now-playing-controls button:hover{background:rgba(255,255,255,0.2);}
+  .now-playing-controls button:disabled{opacity:0.35;cursor:default;}
+
+  .surah-ayah-row{transition:background var(--dur-base) ease, box-shadow var(--dur-base) ease;}
+  .surah-ayah-row.ayah-active{background:linear-gradient(90deg,rgba(212,160,64,0.14),transparent);box-shadow:inset 3px 0 0 var(--gold);}
+  .surah-ayah-row.ayah-next{background:rgba(212,160,64,0.05);}
+  .surah-ayah-row.ayah-active .surah-ayah-ar{color:var(--gold2);}
+
+  /* ── Read Mode ────────────────────────────────────────────────── */
+  .readmode{position:fixed;inset:0;z-index:260;background:var(--bg);overflow-y:auto;animation:pageIn var(--dur-base) var(--ease);}
+  .readmode-close{position:absolute;top:16px;right:16px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--ink2);cursor:pointer;font-size:0.9rem;}
+
+  .book-cover{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,var(--green),#081a10 70%);}
+  .book-cover-frame{position:absolute;inset:24px;pointer-events:none;}
+  .book-cover-frame svg{width:100%;height:100%;}
+  .book-cover-content{position:relative;text-align:center;color:#fff;max-width:340px;}
+  .book-cover-ar{font-family:'Aref Ruqaa',serif;font-size:3.4rem;color:var(--gold2);line-height:1.2;margin-bottom:8px;}
+  .book-cover-en{font-family:'Reem Kufi',sans-serif;font-size:1.3rem;color:#fff;opacity:0.92;}
+  .book-cover-bn{font-size:0.9rem;color:rgba(255,255,255,0.65);margin-top:2px;}
+  .book-cover-meta{display:flex;justify-content:center;gap:8px;font-size:0.72rem;color:rgba(212,160,64,0.8);margin:14px 0 26px;}
+  .book-cover-dot{opacity:0.5;}
+  .book-cover-begin{
+    font-family:'Hind Siliguri',sans-serif;font-weight:600;font-size:0.88rem;
+    padding:12px 26px;border-radius:30px;border:1.5px solid var(--gold2);background:transparent;color:var(--gold2);
+    cursor:pointer;transition:background var(--dur-fast) ease, color var(--dur-fast) ease, transform var(--dur-fast) var(--ease);
+  }
+  .book-cover-begin:hover{background:var(--gold2);color:#1a1209;transform:translateY(-2px);}
+
+  .readmode-reading{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+  .reader-topbar{display:flex;align-items:center;gap:10px;padding:14px 56px 10px 16px;position:relative;flex-shrink:0;}
+  .reader-titles{display:flex;flex-direction:column;line-height:1.2;}
+  .reader-title-ar{font-family:'Aref Ruqaa',serif;font-size:1.2rem;color:var(--green);}
+  .reader-title-en{font-size:0.66rem;color:var(--ink3);}
+  .reader-lang-toggle{display:flex;gap:3px;margin-left:auto;background:var(--bg2);border-radius:20px;padding:3px;}
+  .reader-lang-pill{font-size:0.62rem;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:none;color:var(--ink3);cursor:pointer;transition:background var(--dur-fast) ease, color var(--dur-fast) ease;}
+  .reader-lang-pill.active{background:var(--green);color:#fff;}
+
+  .reader-play-btn{
+    margin:0 16px 10px;padding:11px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1209;font-weight:700;font-size:0.86rem;
+    font-family:'Hind Siliguri',sans-serif;
+  }
+
+  .reader-surface{position:relative;flex:1;overflow-y:auto;padding:8px 20px 20px;}
+  .reader-cursor-glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity var(--dur-base) ease;}
+  @media(hover:hover){
+    .reader-surface:hover .reader-cursor-glow{opacity:1;}
+    .reader-cursor-glow{background:radial-gradient(circle 180px at var(--cursor-x,50%) var(--cursor-y,50%), rgba(212,160,64,0.10), transparent 70%);}
+  }
+  .reader-page{animation:pageFlip var(--dur-slow) var(--ease);}
+  @keyframes pageFlip{from{opacity:0;transform:rotateY(6deg) translateX(10px);}to{opacity:1;transform:rotateY(0) translateX(0);}}
+  .reader-ayah{
+    padding:16px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px;
+    transition:background var(--dur-base) ease, transform var(--dur-fast) ease;
+  }
+  .reader-ayah-ar{display:block;font-family:'UthmanNaskh',serif;font-size:1.9rem;line-height:2.5;direction:rtl;text-align:right;color:var(--ink);}
+  .reader-ayah-num{font-family:monospace;font-size:0.6rem;color:var(--gold);}
+  .reader-ayah-trans{margin-top:8px;font-size:0.82rem;color:var(--ink2);line-height:1.75;}
+  .reader-ayah-active{background:linear-gradient(90deg,rgba(212,160,64,0.16),transparent);}
+  .reader-ayah-active .reader-ayah-ar{color:var(--gold2);}
+  .reader-ayah-next{background:rgba(212,160,64,0.05);}
+  .reader-ayah-next .reader-ayah-ar{text-decoration:underline;text-decoration-color:rgba(212,160,64,0.4);text-underline-offset:6px;}
+
+  .reader-pager{display:flex;align-items:center;justify-content:center;gap:18px;padding:10px;flex-shrink:0;border-top:1px solid var(--border);}
+  .reader-pager button{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--ink2);font-size:1.1rem;cursor:pointer;}
+  .reader-pager button:disabled{opacity:0.3;cursor:default;}
+  .reader-pager-count{font-size:0.72rem;color:var(--ink3);font-family:monospace;}
+
+  /* ── Language pill toggle (topnav) ───────────────────────────── */
+  .lang-nav-btn{position:relative;overflow:hidden;}
+  .lang-nav-btn{animation:none;}
+  .lang-nav-btn:active{transform:scale(0.9);}
 `;
