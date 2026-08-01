@@ -7,122 +7,126 @@ export const TRANSLATION_BN = 161;  // মুহিউদ্দীন খান
 export const TOTAL_AYAT     = 6236;
 
 // ── Themes: the 5 waqt (prayer-time) palette ─────────────────────
-// Chromatic progression across the day, engineered for eye comfort
-// (see design notes): Fajr's pre-dawn mist -> Zuhr's sky-grounded
-// zenith gold -> Asr's amber/copper afternoon -> Maghrib's coral/
-// violet dusk -> Isha's midnight navy/gold. Each stage's anchor
-// colors come straight from the palette brief; the rest of the
-// variable set is derived to stay tonally continuous with its
-// neighbours so the arc reads as one unbroken sky, not five
-// unrelated swatches.
+// Adopted from the "Hadi Waqt Themes" / "Neo-Islamic Twilight" design
+// package: each waqt supplies surface/primary/secondary/accent roles,
+// mapped here as surface->--bg, accent->--ink (the high-contrast
+// reading color), secondary->--gold (vivid highlight), primary->--green
+// (secondary brand accent). Dhuhr and Asr are genuinely LIGHT themes —
+// noon and afternoon are the brightest parts of the day — so the arc
+// has real light/dark contrast as you sweep across it.
+//
+// Exception: Isha's own "secondary" (#1e293b) sits too close to its
+// near-black surface to work as an interactive accent, so Isha borrows
+// the design system's own Soft Gold / Celestial Teal pair instead of
+// its literal spec values for --gold/--green.
 export const THEMES = {
   fajr: {
     name: "ফজর",
     nameEn: "Fajr",
-    "--bg":        "#ece6da",
-    "--bg2":       "#dfd6c4",
-    "--bg3":       "#fffdf8",
-    "--ink":       "#20272f",
-    "--ink2":      "#3b4856",
-    "--ink3":      "#6e7885",
-    "--gold":      "#b49b76",
-    "--gold2":     "#d2ba92",
-    "--green":     "#33574a",
-    "--green2":    "#47705f",
-    "--border":    "rgba(59,72,86,0.18)",
-    "--shadow":    "rgba(35,43,51,0.10)",
-    "--warn":      "#7c4a2e",
-    "--warn-bg":   "#fbf3e9",
-    "--pattern":   "rgba(59,72,86,0.05)",
+    "--bg":        "#0f172a",
+    "--bg2":       "#16213a",
+    "--bg3":       "#1c2b47",
+    "--ink":       "#f1f5f9",
+    "--ink2":      "#cbd5e1",
+    "--ink3":      "#94a3b8",
+    "--gold":      "#38bdf8",
+    "--gold2":     "#7dd3fc",
+    "--green":     "#94a3b8",
+    "--green2":    "#b0bcc9",
+    "--border":    "rgba(56,189,248,0.18)",
+    "--shadow":    "rgba(0,0,0,0.50)",
+    "--warn":      "#f0a868",
+    "--warn-bg":   "rgba(240,168,104,0.08)",
+    "--pattern":   "rgba(56,189,248,0.04)",
   },
-  zuhr: {
+  dhuhr: {
     name: "যুহর",
-    nameEn: "Zuhr",
-    "--bg":        "#f7f2e1",
-    "--bg2":       "#efe4c4",
+    nameEn: "Dhuhr",
+    "--bg":        "#fffbeb",
+    "--bg2":       "#fef3c7",
     "--bg3":       "#ffffff",
-    "--ink":       "#12293c",
-    "--ink2":      "#2c5e8a",
-    "--ink3":      "#5a82a0",
-    "--gold":      "#d9a83b",
-    "--gold2":     "#f3ca63",
-    "--green":     "#1f6b4a",
-    "--green2":    "#2e8b63",
-    "--border":    "rgba(44,94,138,0.20)",
-    "--shadow":    "rgba(22,50,74,0.12)",
-    "--warn":      "#7c3a0e",
-    "--warn-bg":   "#fff7ed",
-    "--pattern":   "rgba(44,94,138,0.05)",
+    "--ink":       "#78350f",
+    "--ink2":      "#92400e",
+    "--ink3":      "#b45309",
+    "--gold":      "#f59e0b",
+    "--gold2":     "#fbbf24",
+    "--green":     "#92400e",
+    "--green2":    "#b45309",
+    "--border":    "rgba(146,64,14,0.18)",
+    "--shadow":    "rgba(120,53,15,0.10)",
+    "--warn":      "#b91c1c",
+    "--warn-bg":   "#fff1e6",
+    "--pattern":   "rgba(245,158,11,0.05)",
   },
   asr: {
     name: "আসর",
     nameEn: "Asr",
-    "--bg":        "#f5e4ce",
-    "--bg2":       "#ead0ae",
+    "--bg":        "#fff7ed",
+    "--bg2":       "#ffedd5",
     "--bg3":       "#fffbf5",
-    "--ink":       "#341a0f",
-    "--ink2":      "#6b3420",
-    "--ink3":      "#9c6a4e",
-    "--gold":      "#d9822b",
-    "--gold2":     "#e8a34f",
-    "--green":     "#3e5c34",
-    "--green2":    "#547a46",
-    "--border":    "rgba(156,67,40,0.22)",
-    "--shadow":    "rgba(59,31,18,0.14)",
-    "--warn":      "#7c2a0e",
-    "--warn-bg":   "#fff3ea",
-    "--pattern":   "rgba(217,130,43,0.06)",
+    "--ink":       "#431407",
+    "--ink2":      "#c2410c",
+    "--ink3":      "#9a3412",
+    "--gold":      "#ea580c",
+    "--gold2":     "#fb923c",
+    "--green":     "#c2410c",
+    "--green2":    "#f97316",
+    "--border":    "rgba(234,88,12,0.22)",
+    "--shadow":    "rgba(67,20,7,0.14)",
+    "--warn":      "#7c2d12",
+    "--warn-bg":   "#fff0e6",
+    "--pattern":   "rgba(234,88,12,0.06)",
   },
   maghrib: {
     name: "মাগরিব",
     nameEn: "Maghrib",
-    "--bg":        "#2a1e2b",
-    "--bg2":       "#35263a",
-    "--bg3":       "#402e46",
-    "--ink":       "#f3e6e2",
-    "--ink2":      "#e0c2bc",
-    "--ink3":      "#a98a93",
-    "--gold":      "#c85250",
-    "--gold2":     "#e0776f",
-    "--green":     "#3f6b57",
-    "--green2":    "#578c73",
-    "--border":    "rgba(200,82,80,0.22)",
-    "--shadow":    "rgba(20,10,20,0.45)",
-    "--warn":      "#f0a87c",
-    "--warn-bg":   "rgba(240,168,124,0.12)",
-    "--pattern":   "rgba(200,82,80,0.06)",
+    "--bg":        "#2d1b36",
+    "--bg2":       "#382345",
+    "--bg3":       "#452a54",
+    "--ink":       "#fdf2f8",
+    "--ink2":      "#f9d5e8",
+    "--ink3":      "#d9a8c9",
+    "--gold":      "#fb923c",
+    "--gold2":     "#fdba74",
+    "--green":     "#f472b6",
+    "--green2":    "#f9a8d4",
+    "--border":    "rgba(244,114,182,0.22)",
+    "--shadow":    "rgba(20,10,20,0.50)",
+    "--warn":      "#fdba74",
+    "--warn-bg":   "rgba(253,186,116,0.10)",
+    "--pattern":   "rgba(244,114,182,0.06)",
   },
   isha: {
     name: "এশা",
     nameEn: "Isha",
-    "--bg":        "#0f172a",
-    "--bg2":       "#16213a",
-    "--bg3":       "#1e2b47",
-    "--ink":       "#f1ead9",
-    "--ink2":      "#c9bfa0",
-    "--ink3":      "#7c8698",
-    "--gold":      "#eab308",
-    "--gold2":     "#f4c430",
-    "--green":     "#34b27a",
-    "--green2":    "#4ccb90",
-    "--border":    "rgba(234,179,8,0.18)",
-    "--shadow":    "rgba(0,0,0,0.55)",
+    "--bg":        "#020617",
+    "--bg2":       "#0a0f1f",
+    "--bg3":       "#1e293b",
+    "--ink":       "#f8fafc",
+    "--ink2":      "#cbd5e1",
+    "--ink3":      "#64748b",
+    "--gold":      "#d4af37",
+    "--gold2":     "#e8c968",
+    "--green":     "#2dd4bf",
+    "--green2":    "#5eead4",
+    "--border":    "rgba(212,175,55,0.18)",
+    "--shadow":    "rgba(0,0,0,0.60)",
     "--warn":      "#f0a868",
     "--warn-bg":   "rgba(240,168,104,0.08)",
-    "--pattern":   "rgba(234,179,8,0.04)",
+    "--pattern":   "rgba(212,175,55,0.04)",
   },
 };
 
 // Order matters: this is the sequence the sun-path arc and the
 // corner orb's cycle button follow, left (dawn) to right (night).
-export const WAQT_ORDER = ["fajr", "zuhr", "asr", "maghrib", "isha"];
+export const WAQT_ORDER = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
 
 // Angle (degrees) of each waqt's node along the semicircular arc,
 // measured like a protractor sitting on the horizon: 180 deg = far
 // left (Fajr), 90 deg = the top of the arc, 0 deg = far right (Isha).
-export const WAQT_ANGLES = { fajr: 180, zuhr: 135, asr: 90, maghrib: 45, isha: 0 };
+export const WAQT_ANGLES = { fajr: 180, dhuhr: 135, asr: 90, maghrib: 45, isha: 0 };
 
-export const THEME_ICONS = { fajr: "🌅", zuhr: "☀️", asr: "🌤️", maghrib: "🌇", isha: "🌙" };
+export const THEME_ICONS = { fajr: "🌅", dhuhr: "☀️", asr: "🌤️", maghrib: "🌇", isha: "🌙" };
 
 // ── Word → Arabic map ────────────────────────────────────────────
 export const WORD_TO_ARABIC = {
