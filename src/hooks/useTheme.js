@@ -4,8 +4,8 @@ import { getSavedTheme, saveTheme } from "../utils/storage.js";
 
 function safeInitialTheme() {
   const saved = getSavedTheme();
-  // A browser that visited before the fajr/zuhr/asr/maghrib/isha rename
-  // may still have an old key (noor/layl/sabz/zill) in localStorage.
+  // A browser that visited before a waqt-key rename (e.g. the old
+  // noor/layl/sabz/zill set, or zuhr->dhuhr) may still have a stale key
   // Falling through to an undefined theme crashes every component that
   // reads themeMeta unconditionally (ThemeOrb, in particular) — so
   // validate against the live THEMES map instead of trusting storage.
