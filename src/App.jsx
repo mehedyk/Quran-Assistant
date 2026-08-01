@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, createContext, useContext } from "react";
+import { Home, Search, BookOpen, HelpCircle, Compass, Sparkles, Bookmark } from "lucide-react";
 import { useTheme } from "./hooks/useTheme.js";
 import { useAudioQueue } from "./hooks/useAudioQueue.js";
 import { useSidebar } from "./hooks/useSidebar.js";
@@ -9,12 +10,14 @@ import {
 } from "./utils/api.js";
 import {
   getBookmarks, addBookmark, removeBookmark, isBookmarked,
-  getRecentSearches, addRecentSearch, isFirstVisit
+  getRecentSearches, addRecentSearch, isFirstVisit, recordActiveDay, recordVerseRead
 } from "./utils/storage.js";
 import ThemeOrb from "./components/layout/ThemeOrb.jsx";
 import SurahCarousel from "./components/home/SurahCarousel.jsx";
 import ReadMode from "./components/readmode/ReadMode.jsx";
 import NowPlayingBar from "./components/surah/NowPlayingBar.jsx";
+import JourneyPage from "./components/journey/JourneyPage.jsx";
+import ShareCardModal from "./components/share/ShareCardModal.jsx";
 
 // ════════════════════════════════════════════════════════════════
 // BRAND LOGO — inline SVG so it inherits theme colors via currentColor
@@ -76,6 +79,14 @@ const T = {
     savedAyat:      "সংরক্ষিত আয়াত",
     savedSub:       (n) => `${n}টি আয়াত সংরক্ষিত`,
     noSaved:        "এখনো কোনো আয়াত সংরক্ষণ করা হয়নি।\nআয়াত খুলুন এবং সংরক্ষণ বাটন চাপুন।",
+    journey:        "যাত্রা",
+    journeyHello:   "আসসালামু আলাইকুম",
+    journeySub:     "আপনার আধ্যাত্মিক যাত্রা আলোর পথ। প্রতিদিন একটু একটু করে এগিয়ে যান।",
+    versesRead:     "আয়াত পঠিত",
+    daysActive:     "সক্রিয় দিন",
+    journeyProgress:"যাত্রার অগ্রগতি",
+    pinnedVerses:   "পিন করা আয়াত",
+    otherWorks:     "আমাদের অন্যান্য কাজ দেখুন",
     askTitle:       "তথ্য জিজ্ঞাসা",
     askSub:         "শুধু তথ্যভিত্তিক প্রশ্ন - কী, কখন, কোনটি, কে",
     askPlaceholder: "প্রশ্ন লিখুন...",
@@ -109,7 +120,7 @@ const T = {
     makki:          "মক্কী",
     madani:         "মাদানী",
     shareCard:      "শেয়ার কার্ড",
-    download:       "📥 ডাউনলোড করুন",
+    download:       "ডাউনলোড করুন",
     start:          "শুরু করুন",
     searchFailed:   "অনুসন্ধান ব্যর্থ হয়েছে।",
     loadFailed:     "আয়াত লোড হয়নি।",
@@ -160,6 +171,14 @@ const T = {
     savedAyat:      "Saved Verses",
     savedSub:       (n) => `${n} verse${n !== 1 ? "s" : ""} saved`,
     noSaved:        "No verses saved yet.\nOpen a verse and tap Save.",
+    journey:        "Journey",
+    journeyHello:   "Assalamu Alaikum",
+    journeySub:     "Your spiritual journey is a path of light. A little every day.",
+    versesRead:     "Verses Read",
+    daysActive:     "Days Active",
+    journeyProgress:"Journey Progress",
+    pinnedVerses:   "Pinned Verses",
+    otherWorks:     "View other works from us",
     askTitle:       "Ask a Question",
     askSub:         "Factual questions only — what, when, which, who",
     askPlaceholder: "Type your question...",
@@ -193,7 +212,7 @@ const T = {
     makki:          "Makki",
     madani:         "Madani",
     shareCard:      "Share Card",
-    download:       "📥 Download",
+    download:       "Download",
     start:          "Get Started",
     searchFailed:   "Search failed. Please try again.",
     loadFailed:     "Could not load verse.",
@@ -225,8 +244,10 @@ export default function App() {
   const [pageData, setPageData]     = useState(null);
   const [showHowTo, setShowHowTo]   = useState(false);
   const [bookmarkTick, setBookmarkTick] = useState(0);
+  const [shareTarget, setShareTarget]   = useState(null);
 
   useEffect(() => { if (isFirstVisit()) setShowHowTo(true); }, []);
+  useEffect(() => { recordActiveDay(); }, []);
 
   function toggleLang() {
     const next = lang === "bn" ? "en" : "bn";
@@ -239,18 +260,20 @@ export default function App() {
   }
 
   const NAV_ITEMS = [
-    { id: "home",          icon: "🏠", label: t.home },
-    { id: "search",        icon: "🔍", label: t.search },
-    { id: "surah-browser", icon: "📖", label: t.surah },
-    { id: "ask",           icon: "❓", label: t.ask },
-    { id: "bookmarks",     icon: "🔖", label: t.saved },
-    { id: "about",         icon: "✨", label: t.about },
+    { id: "home",          icon: Home,       label: t.home },
+    { id: "search",        icon: Search,     label: t.search },
+    { id: "surah-browser", icon: BookOpen,   label: t.surah },
+    { id: "journey",       icon: Compass,    label: t.journey },
+    { id: "ask",           icon: HelpCircle, label: t.ask },
+    { id: "bookmarks",     icon: Bookmark,   label: t.saved },
+    { id: "about",         icon: Sparkles,   label: t.about },
   ];
 
   return (
     <LangContext.Provider value={lang}>
       <style>{BASE_CSS}</style>
       {showHowTo && <HowToModal t={t} onClose={() => setShowHowTo(false)} />}
+      {shareTarget && <ShareCardModal t={t} ayah={shareTarget} onClose={() => setShareTarget(null)} />}
 
       {/* Persistent, on every screen, corner theme control */}
       <ThemeOrb theme={theme} themeMeta={themeMeta} themeList={themeList}
@@ -272,7 +295,7 @@ export default function App() {
           <nav className="sidebar-nav">
             {NAV_ITEMS.map(item => (
               <button key={item.id} className={`sidebar-link ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)} title={item.label}>
-                <span className="sidebar-link-icon">{item.icon}</span>
+                <span className="sidebar-link-icon"><item.icon size={18} /></span>
                 <span className="sidebar-link-text">{item.label}</span>
               </button>
             ))}
@@ -313,6 +336,7 @@ export default function App() {
             {page === "surah"         && <SurahPage t={t} data={pageData} navigate={navigate} audio={audio} />}
             {page === "readmode"      && <ReadMode t={t} data={pageData} audio={audio} onClose={() => navigate("surah", pageData)} />}
             {page === "bookmarks"     && <BookmarksPage key={bookmarkTick} t={t} navigate={navigate} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
+            {page === "journey"       && <JourneyPage t={t} navigate={navigate} tick={bookmarkTick} onShare={setShareTarget} />}
             {page === "ask"           && <AskPage t={t} lang={lang} />}
             {page === "about"         && <AboutPage t={t} lang={lang} />}
           </main>
@@ -323,7 +347,7 @@ export default function App() {
           <div className="tab-bar">
             {NAV_ITEMS.map(item => (
               <button key={item.id} className={`tab ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)}>
-                <span className="tab-icon">{item.icon}</span>
+                <span className="tab-icon"><item.icon size={20} /></span>
                 <span className="tab-label">{item.label}</span>
               </button>
             ))}
@@ -586,6 +610,7 @@ function AyahPage({ t, data, audio, onBookmarkChange }) {
   const [showShare, setShowShare]   = useState(false);
 
   useEffect(() => { if (data?.key) setBookmarked(isBookmarked(data.key)); }, [data?.key]);
+  useEffect(() => { if (data?.key) recordVerseRead(data.key); }, [data?.key]);
 
   if (!data) return <div className="page"><div className="empty-state"><p>{t.loadFailed}</p></div></div>;
 
@@ -604,7 +629,7 @@ function AyahPage({ t, data, audio, onBookmarkChange }) {
 
   return (
     <div className="page ayah-page">
-      {showShare && <ShareModal t={t} ayah={data} onClose={() => setShowShare(false)} />}
+      {showShare && <ShareCardModal t={t} ayah={data} onClose={() => setShowShare(false)} />}
 
       <div className="ayah-surah-badge">
         <span className="ayah-surah-ar">{data.surahName}</span>
@@ -722,7 +747,7 @@ function SurahPage({ t, data, navigate, audio }) {
                 <span className="surah-ayah-num">{v.verse_number}</span>
                 <div className="surah-ayah-ar">{v.text_uthmani}</div>
                 <button className="surah-ayah-expand"
-                  onClick={() => setExpanded(p => ({...p,[key]:!p[key]}))}>
+                  onClick={() => { setExpanded(p => ({...p,[key]:!p[key]})); recordVerseRead(key); }}>
                   {isEx ? "▲" : "▼"}
                 </button>
               </div>
@@ -920,6 +945,9 @@ function AboutPage({ t, lang }) {
           <a className="about-builder-link secondary" href="https://mehedy.netlify.app/" target="_blank" rel="noopener noreferrer">
             {isBn ? "পোর্টফোলিও ↗" : "Portfolio ↗"}
           </a>
+          <a className="about-builder-link secondary" href="https://fusesw.vercel.app/" target="_blank" rel="noopener noreferrer">
+            {t.otherWorks} ↗
+          </a>
         </div>
         <div className="about-text" style={{marginTop:8}}>
           {isBn
@@ -986,71 +1014,6 @@ function AyahCard({ t, ayah, audio, onTap }) {
           {isPlaying ? t.stop : t.recite}
         </button>
         <span className="ayah-card-tap">{t.detail}</span>
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// SHARE MODAL
-// ════════════════════════════════════════════════════════════════
-function ShareModal({ t, ayah, onClose }) {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const W = 800, H = 520;
-    canvas.width = W; canvas.height = H;
-    const g = ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,"#1a3d28"); g.addColorStop(1,"#0a1e14");
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle = "rgba(200,150,62,0.12)"; ctx.lineWidth = 1;
-    for (let i=0; i<W; i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,H); ctx.stroke(); }
-    for (let i=0; i<H; i+=40) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(W,i); ctx.stroke(); }
-    ctx.strokeStyle = "rgba(200,150,62,0.5)"; ctx.lineWidth = 2;
-    ctx.strokeRect(20,20,W-40,H-40); ctx.strokeRect(26,26,W-52,H-52);
-    ctx.fillStyle = "#f0e8d8"; ctx.font = "bold 34px serif";
-    ctx.direction = "rtl"; ctx.textAlign = "center";
-    wrapCanvas(ctx, ayah.arabic || "", W/2, 110, W-100, 46);
-    ctx.direction = "ltr"; ctx.font = "22px sans-serif";
-    ctx.fillStyle = "#c8b898"; ctx.textAlign = "center";
-    wrapCanvas(ctx, stripHtml(ayah.bengali || "").slice(0,140), W/2, 290, W-100, 30);
-    ctx.font = "bold 16px monospace"; ctx.fillStyle = "#c8963e";
-    ctx.fillText(`${ayah.key} — ${ayah.surahName}`, W/2, H-56);
-    ctx.font = "13px sans-serif"; ctx.fillStyle = "rgba(200,184,152,0.45)";
-    ctx.fillText("هادي · Hadi Quran Reference", W/2, H-30);
-  }, [ayah]);
-
-  function wrapCanvas(ctx, text, x, y, maxW, lineH) {
-    const words = text.split(" "); let line = "";
-    for (const w of words) {
-      const test = line ? line+" "+w : w;
-      if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line,x,y); line = w; y += lineH; }
-      else line = test;
-    }
-    ctx.fillText(line, x, y);
-  }
-
-  function download() {
-    const a = document.createElement("a");
-    a.download = `hadi-${ayah.key}.png`;
-    a.href = canvasRef.current.toDataURL("image/png");
-    a.click();
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <span>{t.shareCard}</span>
-          <button className="modal-close" onClick={onClose}>✕</button>
-        </div>
-        <canvas ref={canvasRef} style={{width:"100%",borderRadius:8,display:"block"}} />
-        <div style={{marginTop:12}}>
-          <button className="btn-primary" style={{width:"100%"}} onClick={download}>{t.download}</button>
-        </div>
       </div>
     </div>
   );
@@ -1140,7 +1103,7 @@ const BASE_CSS = `
     .sidebar-link{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;cursor:pointer;color:var(--sidebar-ink);opacity:0.65;font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;text-align:left;transition:all 0.15s;}
     .sidebar-link:hover{opacity:1;background:rgba(255,255,255,0.05);}
     .sidebar-link.active{opacity:1;background:rgba(255,255,255,0.1);color:var(--gold2);font-weight:600;border-left:3px solid var(--gold2);}
-    .sidebar-link-icon{font-size:1rem;width:20px;text-align:center;}
+    .sidebar-link-icon{width:20px;display:inline-flex;align-items:center;justify-content:center;}
     .sidebar-footer{padding:12px 0 20px;border-top:1px solid var(--sidebar-border);}
     .sidebar-ctrl{display:flex;align-items:center;gap:8px;width:100%;padding:9px 20px;background:none;border:none;cursor:pointer;color:var(--sidebar-ink);opacity:0.5;font-family:'Hind Siliguri',sans-serif;font-size:0.78rem;text-align:left;transition:opacity 0.15s;}
     .sidebar-ctrl:hover{opacity:0.85;}
@@ -1172,7 +1135,7 @@ const BASE_CSS = `
   .tab-bar{height:60px;display:flex;background:var(--bg3);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
   .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;cursor:pointer;color:var(--ink3);transition:color 0.15s;padding:5px 0;}
   .tab.active{color:var(--green);}
-  .tab-icon{font-size:1.15rem;}
+  .tab-icon{display:flex;align-items:center;justify-content:center;}
   .tab-label{font-size:0.58rem;font-weight:500;}
   .tab.active .tab-label{font-weight:700;}
   .footer{padding:14px 20px;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
@@ -1603,8 +1566,52 @@ const BASE_CSS = `
   .reader-pager button:disabled{opacity:0.3;cursor:default;}
   .reader-pager-count{font-size:0.72rem;color:var(--ink3);font-family:monospace;}
 
-  /* ── Language pill toggle (topnav) ───────────────────────────── */
+  /* ── Lang pill toggle (topnav) ───────────────────────────── */
   .lang-nav-btn{position:relative;overflow:hidden;}
   .lang-nav-btn{animation:none;}
   .lang-nav-btn:active{transform:scale(0.9);}
+
+  /* ── Share-card export (multi-template) ──────────────────────── */
+  .share-style-row{display:flex;gap:8px;margin:4px 0 14px;overflow-x:auto;padding-bottom:2px;}
+  .share-style-swatch{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;border:2px solid transparent;
+    cursor:pointer;transition:transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) ease;
+  }
+  .share-style-swatch:hover{transform:scale(1.1);}
+  .share-style-swatch.active{box-shadow:0 0 0 2px var(--bg3), 0 0 0 4px var(--gold);transform:scale(1.08);}
+  .share-actions-row{display:flex;gap:10px;margin-top:14px;}
+
+  /* ── Glass-card primitive (used by Journey + future re-skin) ─── */
+  .glass-card{
+    background:linear-gradient(135deg, color-mix(in srgb, var(--bg3) 70%, transparent), color-mix(in srgb, var(--bg2) 55%, transparent));
+    border:1px solid var(--border);border-radius:18px;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 8px 26px var(--shadow);
+  }
+
+  /* ── Journey page ─────────────────────────────────────────────── */
+  .journey-page{padding-bottom:8px;}
+  .journey-hero{padding:22px 20px 26px;text-align:center;position:relative;overflow:hidden;}
+  .journey-hello{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold2);margin-bottom:4px;}
+  .journey-sub{font-size:0.82rem;color:var(--ink3);max-width:320px;margin:0 auto 16px;line-height:1.5;}
+  .journey-stats-row{display:flex;gap:10px;margin-bottom:20px;}
+  .journey-stat{flex:1;padding:12px;text-align:center;}
+  .journey-stat-label{display:flex;align-items:center;justify-content:center;gap:5px;font-size:0.68rem;color:var(--ink3);text-transform:uppercase;letter-spacing:0.04em;}
+  .journey-stat-num{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--ink);margin-top:4px;}
+  .journey-ring-wrap{position:relative;width:176px;height:176px;margin:0 auto;display:grid;place-items:center;}
+  .journey-ring-glow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle, var(--gold) 0%, transparent 70%);opacity:0.18;filter:blur(18px);animation:orbPulse 4s ease-in-out infinite;}
+  .ring-track{stroke:var(--border);}
+  .ring-fill{stroke:var(--gold);transition:stroke-dashoffset 0.8s var(--ease);}
+  .journey-ring-center{position:absolute;display:flex;flex-direction:column;align-items:center;}
+  .journey-ring-pct{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--ink);}
+  .journey-ring-label{font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;}
+
+  .pinned-verse-card{padding:16px;margin-bottom:10px;border-left:3px solid var(--gold);}
+  .pinned-verse-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .pinned-verse-badge{font-size:0.68rem;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:0.03em;}
+  .pinned-verse-actions{display:flex;gap:8px;}
+  .pinned-verse-actions button{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--ink2);cursor:pointer;display:grid;place-items:center;transition:background var(--dur-fast) ease;}
+  .pinned-verse-actions button:hover{background:var(--bg2);}
+  .pinned-verse-ar{font-family:'UthmanNaskh',serif;font-size:1.4rem;direction:rtl;text-align:right;color:var(--ink);line-height:1.9;margin-bottom:8px;}
+  .pinned-verse-trans{font-size:0.82rem;color:var(--ink3);line-height:1.6;}
 `;
