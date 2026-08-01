@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, createContext, useContext } from "react";
-import { Home, Search, BookOpen, HelpCircle, Compass, Sparkles, Bookmark } from "lucide-react";
+import { Home, Search, BookOpen, HelpCircle, Compass, Sparkles, Bookmark, Library } from "lucide-react";
 import { useTheme } from "./hooks/useTheme.js";
 import { useAudioQueue } from "./hooks/useAudioQueue.js";
 import { useSidebar } from "./hooks/useSidebar.js";
@@ -18,6 +18,7 @@ import ReadMode from "./components/readmode/ReadMode.jsx";
 import NowPlayingBar from "./components/surah/NowPlayingBar.jsx";
 import JourneyPage from "./components/journey/JourneyPage.jsx";
 import ShareCardModal from "./components/share/ShareCardModal.jsx";
+import BookLibraryPage from "./components/readmode/BookLibraryPage.jsx";
 
 // ════════════════════════════════════════════════════════════════
 // BRAND LOGO — inline SVG so it inherits theme colors via currentColor
@@ -58,6 +59,7 @@ const T = {
     discoverSurahs: "সূরা আবিষ্কার করুন",
     playSurah:      "সম্পূর্ণ সূরা শুনুন",
     readMode:       "পড়ার মোড",
+    bookLibrarySub: "একটি সূরা বেছে নিন এবং বই আকারে পড়া শুরু করুন",
     beginReading:   "পড়া শুরু করুন →",
     collapseSidebar:"সাইডবার লুকান",
     expandSidebar:  "সাইডবার দেখান",
@@ -150,6 +152,7 @@ const T = {
     discoverSurahs: "Discover Surahs",
     playSurah:      "Play Whole Surah",
     readMode:       "Read Mode",
+    bookLibrarySub: "Pick a surah and start reading it as a book",
     beginReading:   "Begin Reading →",
     collapseSidebar:"Hide Sidebar",
     expandSidebar:  "Show Sidebar",
@@ -263,6 +266,7 @@ export default function App() {
     { id: "home",          icon: Home,       label: t.home },
     { id: "search",        icon: Search,     label: t.search },
     { id: "surah-browser", icon: BookOpen,   label: t.surah },
+    { id: "book",          icon: Library,    label: t.readMode },
     { id: "journey",       icon: Compass,    label: t.journey },
     { id: "ask",           icon: HelpCircle, label: t.ask },
     { id: "bookmarks",     icon: Bookmark,   label: t.saved },
@@ -332,9 +336,10 @@ export default function App() {
             {page === "home"          && <HomePage t={t} navigate={navigate} audio={audio} />}
             {page === "search"        && <SearchPage t={t} navigate={navigate} />}
             {page === "surah-browser" && <SurahBrowserPage t={t} navigate={navigate} />}
+            {page === "book"          && <BookLibraryPage t={t} navigate={navigate} />}
             {page === "ayah"          && <AyahPage t={t} data={pageData} audio={audio} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
             {page === "surah"         && <SurahPage t={t} data={pageData} navigate={navigate} audio={audio} />}
-            {page === "readmode"      && <ReadMode t={t} data={pageData} audio={audio} onClose={() => navigate("surah", pageData)} />}
+            {page === "readmode"      && <ReadMode t={t} data={pageData} audio={audio} onClose={() => navigate(pageData?._origin === "book" ? "book" : "surah", pageData)} />}
             {page === "bookmarks"     && <BookmarksPage key={bookmarkTick} t={t} navigate={navigate} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
             {page === "journey"       && <JourneyPage t={t} navigate={navigate} tick={bookmarkTick} onShare={setShareTarget} />}
             {page === "ask"           && <AskPage t={t} lang={lang} />}
@@ -739,8 +744,8 @@ function SurahPage({ t, data, navigate, audio }) {
           const isEx = expanded[key];
           const isActive = audio.activeKey === key;
           const isNext   = audio.nextKey === key;
-          const bn   = v.translations?.find(tr => tr.resource_id === 161)?.text || "";
-          const en   = v.translations?.find(tr => tr.resource_id === 131)?.text || "";
+          const bn   = v.translations?.find(tr => Number(tr.resource_id) === 161)?.text || "";
+          const en   = v.translations?.find(tr => Number(tr.resource_id) === 131)?.text || "";
           return (
             <div key={key} className={`surah-ayah-row ${isActive ? "ayah-active" : ""} ${isNext ? "ayah-next" : ""}`}>
               <div className="surah-ayah-top">
@@ -1100,7 +1105,7 @@ const BASE_CSS = `
   }
 
   .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
-  .topnav{height:52px;display:flex;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--green);position:sticky;top:0;z-index:100;}
+  .topnav{height:52px;display:flex;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--fill);position:sticky;top:0;z-index:100;}
   .topnav-actions{margin-left:auto;}
   .topnav-logo-btn{display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;}
   .topnav-logo{font-family:'UthmanNaskh',serif;font-size:1.4rem;color:var(--gold2);}
@@ -1109,11 +1114,12 @@ const BASE_CSS = `
   .nav-btn:hover{background:rgba(255,255,255,0.16);}
   .main{flex:1;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
   @media(min-width:768px){.main{padding-bottom:0;}}
-  .tab-bar{height:60px;display:flex;background:var(--bg3);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
-  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;cursor:pointer;color:var(--ink3);transition:color 0.15s;padding:5px 0;}
+  .tab-bar{height:60px;display:flex;overflow-x:auto;background:var(--bg3);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);scrollbar-width:none;}
+  .tab-bar::-webkit-scrollbar{display:none;}
+  .tab{flex:0 0 auto;width:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;cursor:pointer;color:var(--ink3);transition:color 0.15s;padding:5px 4px;}
   .tab.active{color:var(--green);}
   .tab-icon{display:flex;align-items:center;justify-content:center;}
-  .tab-label{font-size:0.58rem;font-weight:500;}
+  .tab-label{font-size:0.58rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   .tab.active .tab-label{font-weight:700;}
   .footer{padding:14px 20px;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
   .footer a{color:var(--ink3);text-decoration:none;}
@@ -1129,16 +1135,16 @@ const BASE_CSS = `
   .section-title-ar{font-family:'UthmanNaskh',serif;font-size:1rem;color:var(--gold);}
   .section-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink3);margin-bottom:8px;}
 
-  .hero{background:var(--green);padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden;}
+  .hero{background:var(--fill);padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden;}
   .hero-pattern{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,var(--pattern) 0,var(--pattern) 1px,transparent 0,transparent 50%);background-size:18px 18px;pointer-events:none;}
   .bismillah-hero{font-family:'UthmanNaskh',serif;font-size:1.3rem;color:color-mix(in srgb, var(--gold) 85%, transparent);direction:rtl;margin-bottom:8px;line-height:2;position:relative;}
   .hero-title{font-family:'UthmanNaskh',serif;font-size:3rem;color:var(--gold2);letter-spacing:0.05em;line-height:1;position:relative;}
-  .hero-sub{font-size:0.8rem;color:color-mix(in srgb, var(--ink) 60%, transparent);margin-top:5px;position:relative;}
+  .hero-sub{font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:5px;position:relative;}
 
   .quick-lookup{display:flex;gap:8px;margin-bottom:10px;}
   .quick-input{flex:1;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);outline:none;transition:border-color 0.18s;}
   .quick-input:focus{border-color:var(--gold);}
-  .quick-btn{width:44px;background:var(--green);color:white;border:none;border-radius:10px;font-size:1.2rem;cursor:pointer;flex-shrink:0;transition:background 0.15s;}
+  .quick-btn{width:44px;background:var(--fill);color:white;border:none;border-radius:10px;font-size:1.2rem;cursor:pointer;flex-shrink:0;transition:background 0.15s;}
   .quick-btn:hover{background:var(--green2);}
 
   .chip{font-family:'Hind Siliguri',sans-serif;font-size:0.76rem;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all 0.14s;white-space:nowrap;}
@@ -1171,10 +1177,10 @@ const BASE_CSS = `
   .arabic-actions{display:flex;gap:6px;flex-wrap:wrap;}
   .action-btn{font-family:'Hind Siliguri',sans-serif;font-size:0.72rem;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all 0.14s;white-space:nowrap;}
   .action-btn:hover{border-color:var(--gold);color:var(--gold);}
-  .action-btn.active{background:var(--green);color:white;border-color:var(--green);}
+  .action-btn.active{background:var(--fill);color:white;border-color:var(--fill);}
   .action-btn.gold{background:var(--gold);color:white;border-color:var(--gold);}
   .action-btn-sm{font-family:'Hind Siliguri',sans-serif;font-size:0.7rem;padding:4px 10px;border-radius:16px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all 0.14s;}
-  .action-btn-sm.active{background:var(--green);color:white;border-color:var(--green);}
+  .action-btn-sm.active{background:var(--fill);color:white;border-color:var(--fill);}
   .trans-card{margin:0 18px 10px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green2);border-radius:0 12px 12px 0;padding:12px 14px;}
   .trans-lang{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gold);margin-bottom:6px;}
   .trans-text{font-size:0.88rem;line-height:1.82;color:var(--ink2);}
@@ -1192,7 +1198,7 @@ const BASE_CSS = `
   .search-bar-wrap{display:flex;gap:8px;padding:0 18px 12px;}
   .search-bar{flex:1;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);outline:none;transition:border-color 0.18s;}
   .search-bar:focus{border-color:var(--gold);}
-  .search-go{font-family:'Hind Siliguri',sans-serif;font-size:0.8rem;font-weight:600;padding:0 16px;background:var(--green);color:white;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
+  .search-go{font-family:'Hind Siliguri',sans-serif;font-size:0.8rem;font-weight:600;padding:0 16px;background:var(--fill);color:white;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
   .search-go:hover{background:var(--green2);}
   .search-go:disabled{opacity:0.5;cursor:not-allowed;}
   .results-meta{font-size:0.82rem;color:var(--ink2);margin-bottom:12px;line-height:1.6;}
@@ -1245,9 +1251,9 @@ const BASE_CSS = `
   .answer-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--green2);margin-bottom:8px;}
   .answer-text{font-size:0.92rem;line-height:1.88;color:var(--ink);margin-bottom:10px;}
 
-  .about-hero{background:linear-gradient(135deg,var(--green),var(--bg2));padding:32px 22px;text-align:center;}
+  .about-hero{background:linear-gradient(135deg,var(--fill),color-mix(in srgb, var(--fill) 70%, black));padding:32px 22px;text-align:center;}
   .about-ayah-ar{font-family:'UthmanNaskh',serif;font-size:1.5rem;line-height:2.2;direction:rtl;color:var(--gold2);margin-bottom:14px;}
-  .about-ayah-bn{font-size:0.88rem;line-height:1.85;color:color-mix(in srgb, var(--ink) 85%, transparent);margin-bottom:8px;}
+  .about-ayah-bn{font-size:0.88rem;line-height:1.85;color:rgba(255,255,255,0.9);margin-bottom:8px;}
   .about-ref{font-family:monospace;font-size:0.65rem;color:color-mix(in srgb, var(--gold) 65%, transparent);}
   .about-section{padding:18px 18px 8px;border-bottom:1px solid var(--border);}
   .about-section:last-of-type{border-bottom:none;}
@@ -1287,7 +1293,7 @@ const BASE_CSS = `
   .muted{color:var(--ink3);}
   .spin{display:inline-block;animation:spin 0.8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .btn-primary{font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;font-weight:600;padding:12px 20px;background:var(--green);color:white;border:none;border-radius:10px;cursor:pointer;transition:background 0.15s;}
+  .btn-primary{font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;font-weight:600;padding:12px 20px;background:var(--fill);color:white;border:none;border-radius:10px;cursor:pointer;transition:background 0.15s;}
   .btn-primary:hover{background:var(--green2);}
 
   /* ── UI upgrade pass ─────────────────────────────────────────── */
@@ -1304,7 +1310,7 @@ const BASE_CSS = `
   }
 
   /* Glass topnav on mobile — subtle depth instead of a flat block. */
-  .topnav{background:linear-gradient(180deg,var(--green),rgba(28,74,46,0.92));backdrop-filter:saturate(140%) blur(6px);box-shadow:0 2px 10px var(--shadow);}
+  .topnav{background:linear-gradient(180deg,var(--fill),color-mix(in srgb, var(--fill) 85%, black));backdrop-filter:saturate(140%) blur(6px);box-shadow:0 2px 10px var(--shadow);}
   .sidebar{box-shadow:2px 0 14px var(--shadow);}
   .sidebar-link{border-radius:0 20px 20px 0;margin-right:10px;}
   .sidebar-link.active{box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--gold) 15%, transparent);}
@@ -1464,7 +1470,7 @@ const BASE_CSS = `
   .now-playing-bar{
     position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));left:0;right:0;z-index:150;
     display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:var(--green);color:#fff;padding:10px 14px;
+    background:var(--fill);color:#fff;padding:10px 14px;
     animation:nowPlayingIn var(--dur-base) var(--ease);
   }
   @media(min-width:768px){.now-playing-bar{position:sticky;bottom:0;}}
@@ -1487,7 +1493,7 @@ const BASE_CSS = `
   .readmode{position:fixed;inset:0;z-index:260;background:var(--bg);overflow-y:auto;animation:pageIn var(--dur-base) var(--ease);}
   .readmode-close{position:absolute;top:16px;right:16px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--ink2);cursor:pointer;font-size:0.9rem;}
 
-  .book-cover{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,var(--green),var(--bg2) 70%);}
+  .book-cover{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,var(--fill),color-mix(in srgb, var(--fill) 65%, black) 70%);}
   .book-cover-frame{position:absolute;inset:24px;pointer-events:none;}
   .book-cover-frame svg{width:100%;height:100%;}
   .book-cover-content{position:relative;text-align:center;color:#fff;max-width:340px;}
@@ -1504,16 +1510,17 @@ const BASE_CSS = `
   .book-cover-begin:hover{background:var(--gold2);color:#1a1209;transform:translateY(-2px);}
 
   .readmode-reading{display:flex;flex-direction:column;height:100vh;height:100dvh;}
-  .reader-topbar{display:flex;align-items:center;gap:10px;padding:14px 56px 10px 16px;position:relative;flex-shrink:0;}
-  .reader-titles{display:flex;flex-direction:column;line-height:1.2;}
-  .reader-title-ar{font-family:'Aref Ruqaa',serif;font-size:1.2rem;color:var(--green);}
+  .reader-topbar{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 56px 6px 16px;position:relative;flex-shrink:0;}
+  .reader-titles{display:flex;flex-direction:column;align-items:center;line-height:1.2;text-align:center;min-width:0;}
+  .reader-title-ar{font-family:'Aref Ruqaa',serif;font-size:1.2rem;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   .reader-title-en{font-size:0.66rem;color:var(--ink3);}
-  .reader-lang-toggle{display:flex;gap:3px;margin-left:auto;background:var(--bg2);border-radius:20px;padding:3px;}
+  .reader-controls-row{display:flex;align-items:center;gap:8px;padding:0 16px 10px;flex-shrink:0;}
+  .reader-lang-toggle{display:flex;gap:3px;flex-shrink:0;background:var(--bg2);border-radius:20px;padding:3px;}
   .reader-lang-pill{font-size:0.62rem;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:none;color:var(--ink3);cursor:pointer;transition:background var(--dur-fast) ease, color var(--dur-fast) ease;}
-  .reader-lang-pill.active{background:var(--green);color:#fff;}
+  .reader-lang-pill.active{background:var(--fill);color:#fff;}
 
   .reader-play-btn{
-    margin:0 16px 10px;padding:11px;border-radius:12px;border:none;cursor:pointer;
+    flex:1;min-width:0;padding:11px;border-radius:12px;border:none;cursor:pointer;
     background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1209;font-weight:700;font-size:0.86rem;
     font-family:'Hind Siliguri',sans-serif;
   }
@@ -1625,4 +1632,20 @@ const BASE_CSS = `
     .surah-ayah-expand{padding:10px;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;}
     .tab{padding:8px 4px;min-height:52px;}
   }
+
+  /* ── Book Mode library shelf ──────────────────────────────────── */
+  .book-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;padding:0 18px 24px;}
+  .book-spine{
+    aspect-ratio:2/3;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;padding:14px 8px;border:1px solid var(--border);border-radius:10px 14px 14px 10px;
+    cursor:pointer;position:relative;overflow:hidden;
+    transition:transform var(--dur-base) var(--ease), box-shadow var(--dur-base) ease;
+  }
+  .book-spine::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,var(--gold),var(--gold2));}
+  .book-spine:hover, .book-spine:active{transform:translateY(-3px) rotate(-0.5deg);box-shadow:0 10px 24px var(--shadow);}
+  .book-spine-num{font-family:monospace;font-size:0.62rem;color:var(--gold);}
+  .book-spine-ar{font-family:'UthmanNaskh',serif;font-size:1.3rem;color:var(--green);direction:rtl;text-align:center;}
+  .book-spine-en{font-family:'Playfair Display',serif;font-size:0.7rem;color:var(--ink);text-align:center;}
+  .book-spine-meta{font-size:0.58rem;color:var(--ink3);}
+  .book-spine.skeleton::before{display:none;}
 `;

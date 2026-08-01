@@ -103,6 +103,12 @@ export default function ReadMode({ t, data, audio, onClose }) {
           <span className="reader-title-ar">{meta?.name_arabic}</span>
           <span className="reader-title-en">{meta?.name_simple}</span>
         </div>
+      </div>
+
+      <div className="reader-controls-row">
+        <button className="reader-play-btn" onClick={() => audio.isPlaying && audio.current?.surahNum === meta.id ? audio.togglePause() : playFromHere(page[0]?.verse_number)}>
+          {audio.isPlaying && audio.current?.surahNum === meta.id ? `⏸ ${t.stop}` : `▶ ${t.playSurah}`}
+        </button>
         <div className="reader-lang-toggle">
           {["off","bn","en"].map(v => (
             <button key={v} className={`reader-lang-pill ${readLang===v?"active":""}`} onClick={() => setLang(v)}>
@@ -112,10 +118,6 @@ export default function ReadMode({ t, data, audio, onClose }) {
         </div>
       </div>
 
-      <button className="reader-play-btn" onClick={() => audio.isPlaying && audio.current?.surahNum === meta.id ? audio.togglePause() : playFromHere(page[0]?.verse_number)}>
-        {audio.isPlaying && audio.current?.surahNum === meta.id ? `⏸ ${t.stop}` : `▶ ${t.playSurah}`}
-      </button>
-
       <div className="reader-surface" ref={surfaceRef}>
         <div className="reader-cursor-glow" aria-hidden />
         <div key={pageIdx} className="reader-page">
@@ -123,8 +125,8 @@ export default function ReadMode({ t, data, audio, onClose }) {
             const key = `${meta.id}:${v.verse_number}`;
             const isActive = audio.activeKey === key;
             const isNext   = audio.nextKey === key;
-            const bn = v.translations?.find(tr => tr.resource_id === 161)?.text || "";
-            const en = v.translations?.find(tr => tr.resource_id === 131)?.text || "";
+            const bn = v.translations?.find(tr => Number(tr.resource_id) === 161)?.text || "";
+            const en = v.translations?.find(tr => Number(tr.resource_id) === 131)?.text || "";
             return (
               <div key={key}
                 className={`reader-ayah ${isActive ? "reader-ayah-active" : ""} ${isNext ? "reader-ayah-next" : ""}`}

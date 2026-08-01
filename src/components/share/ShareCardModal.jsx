@@ -34,26 +34,26 @@ function wrapText(ctx, text, x, y, maxW, lineH) {
   return y + lines.length * lineH;
 }
 
-// Two overlapping squares, rotated 45 deg apart -> an 8-point khatim
-// star outline. Pure geometry, the classic Islamic star motif.
+// A single continuous 8-point starburst — alternating outer/inner
+// radius around one path, not two overlapping shapes, so there's no
+// risk of it reading as a hexagram or any other symbol. Just a plain
+// geometric sun-burst, a common motif in Islamic ornamental borders.
 function drawKhatim(ctx, cx, cy, r, stroke, lineWidth = 1.4) {
+  const points = 8;
+  const innerR = r * 0.45;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.strokeStyle = stroke;
   ctx.lineWidth = lineWidth;
-  [0, Math.PI / 4].forEach(rot => {
-    ctx.save();
-    ctx.rotate(rot);
-    ctx.beginPath();
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2;
-      const x = r * Math.cos(a), y = r * Math.sin(a);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  });
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const rad = i % 2 === 0 ? r : innerR;
+    const a = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+    const x = rad * Math.cos(a), y = rad * Math.sin(a);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
   ctx.restore();
 }
 
