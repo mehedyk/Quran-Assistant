@@ -5,6 +5,8 @@ const KEYS = {
   FIRST:     "hadi_first_visit",
   SIDEBAR:   "hadi_sidebar_collapsed",
   READ_LANG: "hadi_read_lang",
+  VERSES_READ: "hadi_verses_read",
+  ACTIVE_DAYS: "hadi_active_days",
 };
 
 // ── Bookmarks ────────────────────────────────────────────────────
@@ -42,7 +44,7 @@ export function addRecentSearch(query) {
 
 // ── Theme ────────────────────────────────────────────────────────
 export function getSavedTheme() {
-  return localStorage.getItem(KEYS.THEME) || "zuhr";
+  return localStorage.getItem(KEYS.THEME) || "dhuhr";
 }
 
 export function saveTheme(theme) {
@@ -74,4 +76,35 @@ export function getSavedReadLang() {
 
 export function saveReadLang(v) {
   localStorage.setItem(KEYS.READ_LANG, v);
+}
+
+// ── Journey stats: distinct verses read + distinct active days ───
+// Both stored as JSON arrays acting as dedup sets — simple counters,
+// not a rigorous reading tracker, just enough for the Journey page's
+// progress ring and stat chips.
+export function recordVerseRead(key) {
+  try {
+    const set = new Set(JSON.parse(localStorage.getItem(KEYS.VERSES_READ) || "[]"));
+    set.add(key);
+    localStorage.setItem(KEYS.VERSES_READ, JSON.stringify([...set]));
+  } catch { /* storage unavailable — skip silently */ }
+}
+
+export function getVersesReadCount() {
+  try { return new Set(JSON.parse(localStorage.getItem(KEYS.VERSES_READ) || "[]")).size; }
+  catch { return 0; }
+}
+
+export function recordActiveDay() {
+  try {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const set = new Set(JSON.parse(localStorage.getItem(KEYS.ACTIVE_DAYS) || "[]"));
+    set.add(today);
+    localStorage.setItem(KEYS.ACTIVE_DAYS, JSON.stringify([...set]));
+  } catch { /* storage unavailable — skip silently */ }
+}
+
+export function getActiveDaysCount() {
+  try { return new Set(JSON.parse(localStorage.getItem(KEYS.ACTIVE_DAYS) || "[]")).size; }
+  catch { return 0; }
 }
