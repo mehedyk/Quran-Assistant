@@ -1,7 +1,10 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import { getAyahAudioUrl } from "../../utils/api.js";
 import { stripHtml } from "../../utils/constants.js";
 import { getSavedReadLang, saveReadLang } from "../../utils/storage.js";
+import { surahToBook } from "../../three/bookDescriptors.js";
+
+const BookScene = lazy(() => import("../../three/BookScene.jsx").then(m => ({ default: m.BookScene })));
 
 const PAGE_SIZE = 6;
 
@@ -58,24 +61,34 @@ export default function ReadMode({ t, data, audio, onClose }) {
   }, [stage]);
 
   const revPlace = meta?.revelation_place === "makkah" ? t.makki : t.madani;
+  const coverBook = useMemo(() => (meta ? [surahToBook(meta)] : []), [meta]);
+  const coverSceneRef = useRef(null);
+  const [coverOpened, setCoverOpened] = useState(false);
+
+  // Auto-open the single-book 3D cover as soon as the scene mounts — this
+  // is a single-volume view (no shelf browsing here, that's Book Library's
+  // job), so it should present already mid-opening rather than making the
+  // reader click a shelf they can't see.
+  useEffect(() => {
+    if (stage !== "cover" || coverOpened) return;
+    const id = requestAnimationFrame(() => {
+      coverSceneRef.current?.openDetail();
+      setCoverOpened(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [stage, coverOpened]);
 
   if (stage === "cover") {
     return (
-      <div className="readmode readmode-cover">
+      <div className="readmode readmode-cover readmode-cover-3d">
         <button className="readmode-close" onClick={onClose} aria-label="Close">✕</button>
-        <div className="book-cover">
-          <div className="book-cover-frame" aria-hidden>
-            <svg viewBox="0 0 300 400" preserveAspectRatio="none">
-              <rect x="10" y="10" width="280" height="380" fill="none" stroke="var(--gold2)" strokeWidth="1.5" />
-              <rect x="16" y="16" width="268" height="368" fill="none" stroke="var(--gold2)" strokeWidth="0.75" opacity="0.6" />
-              {[[10,10],[290,10],[10,390],[290,390]].map(([x,y],i) => (
-                <path key={i}
-                  d={`M ${x} ${y} m ${x<150?18:-18} 0 a 18 18 0 0 ${x<150?1:0} ${x<150?-18:18} ${y<200?18:-18}`}
-                  fill="none" stroke="var(--gold2)" strokeWidth="1.5" />
-              ))}
-            </svg>
-          </div>
-          <div className="book-cover-content">
+        <div className="book-cover-3d-stage">
+          <Suspense fallback={<div className="skeleton book-cover-3d-skeleton" />}>
+            <BookScene ref={coverSceneRef} books={coverBook} />
+          </Suspense>
+          {/* Real DOM overlay: title/meta stay screen-reader and
+              text-selectable regardless of the 3D layer underneath. */}
+          <div className="book-cover-3d-chrome glass-card">
             <div className="book-cover-ar">{meta?.name_arabic}</div>
             <div className="book-cover-en">{meta?.name_simple}</div>
             <div className="book-cover-bn">{meta?.translated_name?.name}</div>

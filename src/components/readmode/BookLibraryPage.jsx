@@ -1,53 +1,122 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { fetchAllSurahs, fetchSurahAyat } from "../../utils/api.js";
+import { surahsToBooks } from "../../three/bookDescriptors.js";
+
+// Lazy-loaded: three.js is heavy (~1MB) and should only be fetched when the
+// person actually opens the 3D shelf, not on every page of the app.
+const BookScene = lazy(() => import("../../three/BookScene.jsx").then(m => ({ default: m.BookScene })));
 
 export default function BookLibraryPage({ t, navigate }) {
   const [surahs, setSurahs]   = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState("");
+  const [selected, setSelected] = useState(null); // surah meta of the currently-highlighted/opened book
+  const [detailOpen, setDetailOpen] = useState(false);
+  const sceneRef = useRef(null);
 
   useEffect(() => {
-    fetchAllSurahs().then(s => { setSurahs(s); setLoading(false); }).catch(() => setLoading(false));
+    fetchAllSurahs().then(s => {
+      setSurahs(s);
+      setSelected(s[0] || null);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  const filtered = surahs.filter(s =>
-    !filter ||
-    s.name_simple.toLowerCase().includes(filter.toLowerCase()) ||
-    s.translated_name?.name?.toLowerCase().includes(filter.toLowerCase()) ||
-    String(s.id).includes(filter)
-  );
+  const books = surahs.length ? surahsToBooks(surahs) : [];
 
-  function openBook(s) {
-    // _origin marks that Read Mode was entered from the library shelf,
-    // so its close button returns here instead of the flat surah list.
-    fetchSurahAyat(s.id).then(d => navigate("readmode", { ...d, surahNum: s.id, _origin: "book" }));
+  const handleSelectionChange = useCallback((index) => {
+    setSelected(surahs[index] || null);
+  }, [surahs]);
+
+  const handleDetailChange = useCallback((book) => {
+    setDetailOpen(Boolean(book));
+  }, []);
+
+  function beginReading() {
+    if (!selected) return;
+    fetchSurahAyat(selected.id).then(d => navigate("readmode", { ...d, surahNum: selected.id, _origin: "book" }));
   }
 
   return (
-    <div className="page book-library-page">
+    <div className="page book-library-page book-library-page-3d">
       <div className="page-header">
         <h2 className="page-title">{t.readMode}</h2>
         <p className="page-sub">{t.bookLibrarySub}</p>
       </div>
-      <div className="search-bar-wrap">
-        <input className="search-bar" value={filter}
-          onChange={e => setFilter(e.target.value)}
-          placeholder={t.surahPlaceholder} />
-      </div>
+
       {loading ? (
-        <div className="book-shelf">
-          {Array(10).fill(0).map((_, i) => <div key={i} className="skeleton book-spine" />)}
+        <div className="book-shelf-3d-loading">
+          <div className="skeleton book-shelf-3d-skeleton" />
         </div>
       ) : (
-        <div className="book-shelf">
-          {filtered.map(s => (
-            <button key={s.id} className="book-spine glass-card" onClick={() => openBook(s)}>
-              <span className="book-spine-num">{s.id}</span>
-              <span className="book-spine-ar">{s.name_arabic}</span>
-              <span className="book-spine-en">{s.name_simple}</span>
-              <span className="book-spine-meta">{s.verses_count}</span>
-            </button>
-          ))}
+        <div className="book-shelf-3d-stage">
+          <Suspense fallback={<div className="book-shelf-3d-skeleton skeleton" />}>
+            <BookScene
+              ref={sceneRef}
+              books={books}
+              onSelectionChange={handleSelectionChange}
+              onDetailChange={handleDetailChange}
+            />
+          </Suspense>
+
+          {/* Accessible HTML chrome layered over the WebGL canvas — same
+              pattern the source demo used for its own controls. This is
+              real DOM: screen readers, keyboard users, and reduced-motion
+              users all get a working experience through this layer even
+              though the shelf itself is a canvas. */}
+          <div className="book-shelf-3d-chrome" aria-hidden={false}>
+            {!detailOpen && (
+              <>
+                <button
+                  className="book-shelf-3d-nav book-shelf-3d-nav-prev"
+                  onClick={() => sceneRef.current?.navigate(-1)}
+                  aria-label={t.previousSurah || "Previous surah"}
+                >‹</button>
+                <button
+                  className="book-shelf-3d-nav book-shelf-3d-nav-next"
+                  onClick={() => sceneRef.current?.navigate(1)}
+                  aria-label={t.nextSurah || "Next surah"}
+                >›</button>
+                {selected && (
+                  <div className="book-shelf-3d-label glass-card">
+                    <span className="book-shelf-3d-label-num">{selected.id}</span>
+                    <span className="book-shelf-3d-label-ar">{selected.name_arabic}</span>
+                    <span className="book-shelf-3d-label-en">{selected.name_simple}</span>
+                    <button className="book-shelf-3d-open-btn" onClick={() => sceneRef.current?.openDetail()}>
+                      {t.inspect || "Inspect"}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+            {detailOpen && (
+              <div className="book-shelf-3d-detail-bar glass-card">
+                <button className="book-shelf-3d-close" onClick={() => sceneRef.current?.closeDetail()} aria-label="Close">✕</button>
+                {selected && (
+                  <div className="book-shelf-3d-detail-title">
+                    <span className="book-shelf-3d-label-ar">{selected.name_arabic}</span>
+                    <span className="book-shelf-3d-label-en">{selected.translated_name?.name || selected.name_simple}</span>
+                  </div>
+                )}
+                <button className="book-cover-begin" onClick={beginReading}>
+                  {t.beginReading}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Real DOM list, visually hidden — keeps the full surah catalog
+              keyboard/screen-reader/search-engine navigable even though
+              the visible shelf is a 3D carousel that only shows a few
+              volumes near the current position at a time. */}
+          <ul className="sr-only book-shelf-3d-index" aria-label={t.readMode}>
+            {surahs.map((s, index) => (
+              <li key={s.id}>
+                <button onClick={() => { sceneRef.current?.setSelectedIndex(index); sceneRef.current?.openDetail(); }}>
+                  {s.id}. {s.name_arabic} — {s.name_simple}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
