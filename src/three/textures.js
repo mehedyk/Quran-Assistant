@@ -494,6 +494,7 @@ export function makeBlankPaperTexture(renderer) {
   const random = seededRandom(hashSeed("hadi-paper-stock"));
   drawPaperSurface(ctx, canvas.width, canvas.height, random);
   sharedBlankPaperTexture = configureCanvasTexture(new THREE.CanvasTexture(canvas), renderer);
+  sharedBlankPaperTexture.userData.isSharedAsset = true; // never dispose per-rig — module-wide singleton, reused across every book
   return sharedBlankPaperTexture;
 }
 
@@ -558,6 +559,7 @@ export function makeContactShadowTexture(renderer) {
     anisotropy: 8
   });
   sharedContactShadowTexture.name = "soft-contact-shadow";
+  sharedContactShadowTexture.userData.isSharedAsset = true;
   return sharedContactShadowTexture;
 }
 
@@ -616,6 +618,8 @@ export function makePageEdgeTextures(renderer) {
     fore: makeEdgeTexture(512, 2048, "fore-edge"),
     headTail: makeEdgeTexture(2048, 384, "head-tail-edge")
   };
+  sharedPageEdgeTextures.fore.userData.isSharedAsset = true;
+  sharedPageEdgeTextures.headTail.userData.isSharedAsset = true;
   return sharedPageEdgeTextures;
 }
 

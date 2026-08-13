@@ -1681,4 +1681,15 @@ const BASE_CSS = `
   .book-cover-3d-stage{position:relative;width:100%;height:100%;}
   .book-cover-3d-skeleton{position:absolute;inset:0;border-radius:0;}
   .book-cover-3d-chrome{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);text-align:center;padding:18px 28px;border-radius:18px;max-width:min(420px,88vw);}
+
+  .readmode-3d{position:fixed;inset:0;z-index:260;background:var(--bg);}
+  .readmode-3d .book-cover-3d-stage{position:absolute;inset:0;width:100%;height:100%;}
+  .reader-3d-topbar{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;
+    padding:8px 16px;border-radius:16px;max-width:calc(100% - 90px);flex-wrap:wrap;justify-content:center;}
+  .reader-3d-pager{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:16px;padding:8px 16px;border-radius:999px;}
+  .reader-3d-pager button{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--ink2);font-size:1.05rem;cursor:pointer;}
+  @media(max-width:767.98px){
+    .reader-3d-topbar{top:12px;gap:8px;}
+    .reader-3d-pager{bottom:12px;}
+  }
 `;

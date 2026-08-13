@@ -25,6 +25,7 @@ import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUnifo
 import { createSharedAssets, createBookRig, LEAF_COUNT } from "./bookRig.js";
 import { addRoom, addLights, addDust, computeResponsiveTargets, getInspectScale, applyDetailViewOffset } from "./sceneSetup.js";
 import { seededRandom } from "./textures.js";
+import { paginateAyat, renderPageFace, renderBlankFace } from "./pageContentTexture.js";
 
 const damp = THREE.MathUtils.damp;
 const lerp = THREE.MathUtils.lerp;
@@ -49,12 +50,13 @@ export class BookSceneEngine {
    * @param {(book: object|null, spread: number, readingOpen: boolean) => void} [options.onDetailChange] - fired whenever the open book / current spread / reading-open state changes, so React can drive the accessible DOM mirror (Phase 2) and page nav buttons
    * @param {() => void} [options.onClosed]
    */
-  constructor(canvas, { books, onSelectionChange, onDetailChange, onClosed } = {}) {
+  constructor(canvas, { books, onSelectionChange, onDetailChange, onClosed, onAyahTap } = {}) {
     this.canvas = canvas;
     this.books = books || [];
     this.onSelectionChange = onSelectionChange || (() => {});
     this.onDetailChange = onDetailChange || (() => {});
     this.onClosed = onClosed || (() => {});
+    this.onAyahTap = onAyahTap || (() => {});
 
     this.mode = "hero"; // hero | opening | detail | closing
     this.selectedIndex = 0;
@@ -89,6 +91,15 @@ export class BookSceneEngine {
       direction: 0, kind: null
     };
     this.detailPress = { active: false, pointerId: null, startX: 0, startY: 0, moved: false, allowClick: false };
+
+    // Reading content (Phase 2) — see setReadingContent/renderWindow.
+    this.logicalPages = [];      // array of up to-PAGE_SIZE ayah arrays, whole surah
+    this.windowStart = 0;        // index into logicalPages currently mapped to physical slot 0
+    this.readLang = "off";
+    this.activeVerseNumber = null;
+    this.nextVerseNumber = null;
+    this.surahNameAr = "";
+    this._faceHitboxesBySlot = new Array(8).fill(null);
 
     this._initRenderer();
     this._initScene();
@@ -217,7 +228,7 @@ export class BookSceneEngine {
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       materials.filter(Boolean).forEach((material) => {
         Object.values(material).forEach((value) => {
-          if (value?.isTexture) value.dispose();
+          if (value?.isTexture && !value.userData?.isSharedAsset) value.dispose();
         });
         material.dispose();
       });
@@ -455,7 +466,7 @@ export class BookSceneEngine {
     this._applyDetailViewOffset();
     this.controls.enabled = false;
 
-    this.onDetailChange(this.activeBook.data, this.currentSpread, this.readingOpen);
+    this.onDetailChange(this.activeBook.data, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
     if (this.reducedMotion) this.finishOpening();
     this.requestFrame();
   }
@@ -514,7 +525,7 @@ export class BookSceneEngine {
       if (rig !== this.activeBook && rig.root.parent === this.shelfStage) this.snapRigToShelfSlot(rig, index);
     });
 
-    this.onDetailChange(this.activeBook.data, this.currentSpread, this.readingOpen);
+    this.onDetailChange(this.activeBook.data, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
     if (this.reducedMotion) this.finishClosing();
     this.requestFrame();
   }
@@ -545,7 +556,7 @@ export class BookSceneEngine {
     this.mode = "hero";
     this.transitionTime = 0;
     this.activeBook = null;
-    this.onDetailChange(null, 0, false);
+    this.onDetailChange(null, 0, false, []);
     this.onClosed();
   }
 
@@ -562,17 +573,153 @@ export class BookSceneEngine {
     this.cancelPageDrag();
     this.readingOpen = open;
     if (!this.readingOpen) this.currentSpread = 0;
-    this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen);
+    this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
     this.requestFrame();
   }
 
   turnPage(direction) {
     if (this.mode !== "detail" || !this.readingOpen) return;
+    const atForwardEdge = direction > 0 && this.currentSpread >= SPREAD_COUNT - 1;
+    const atBackwardEdge = direction < 0 && this.currentSpread <= 0;
+
+    if (atForwardEdge || atBackwardEdge) {
+      const shifted = this._shiftWindow(direction > 0 ? 8 : -8);
+      if (!shifted) return; // already at the very start/end of the surah
+      this.currentSpread = direction > 0 ? 0 : SPREAD_COUNT - 1;
+      this.renderWindow();
+      this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
+      this.requestFrame();
+      return;
+    }
+
     const nextSpread = clamp(this.currentSpread + direction, 0, SPREAD_COUNT - 1);
     if (nextSpread === this.currentSpread) return;
     this.currentSpread = nextSpread;
-    this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen);
+    this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
     this.requestFrame();
+  }
+
+  // --- reading content (Phase 2): dynamic pagination over the fixed 4-leaf/8-face rig ---
+  //
+  // The rig physically supports exactly 4 turnable leaves = 8 content
+  // faces per "gathering" (see bookRig.js comments — slot order is
+  // leaf0-front, leaf0-back, leaf1-front, ... leaf3-back, matching
+  // pageSurfaces[] order directly). A surah with more than 8 logical
+  // pages (PAGE_SIZE=6 ayat each) can't fit in one gathering, so
+  // `windowStart` slides by a full gathering (8 logical pages) whenever
+  // the reader turns past either edge — the same way a real multi-
+  // signature book's gatherings work, just re-texturing the same 8 faces
+  // instead of binding in new paper each time.
+
+  /** Call after fetching a surah (or on language toggle) — chunks ayat and (re)draws the current window. */
+  setReadingContent(ayat, lang, surahNameAr) {
+    this.logicalPages = paginateAyat(ayat || []);
+    this.readLang = lang || "off";
+    this.surahNameAr = surahNameAr || "";
+    this.windowStart = 0;
+    this.currentSpread = 0;
+    this.renderWindow();
+  }
+
+  setReadLang(lang) {
+    if (this.readLang === lang) return;
+    this.readLang = lang;
+    this.renderWindow();
+  }
+
+  /** Highlights the currently-playing (and about-to-play) ayah across whichever visible face contains it. */
+  setActiveVerse(activeVerseNumber, nextVerseNumber = null) {
+    if (this.activeVerseNumber === activeVerseNumber && this.nextVerseNumber === nextVerseNumber) return;
+    this.activeVerseNumber = activeVerseNumber;
+    this.nextVerseNumber = nextVerseNumber;
+    this.renderWindow();
+  }
+
+  /** Ayat currently visible on the open spread — for the accessible DOM mirror and page-position display. */
+  getVisibleAyahs() {
+    const isLastSpread = this.currentSpread === SPREAD_COUNT - 1;
+    const rightSlot = this.currentSpread === 0 ? 0 : (isLastSpread ? null : this.currentSpread * 2);
+    const leftSlot = this.currentSpread === 0 ? null : this.currentSpread * 2 - 1;
+    const collect = (slot) => (slot === null ? [] : (this.logicalPages[this.windowStart + slot] || []));
+    return [...collect(leftSlot), ...collect(rightSlot)];
+  }
+
+  /** Jumps the open book to whichever page contains verseNumber — mirrors the flat reader's auto-follow-playback behavior. */
+  goToVerse(verseNumber) {
+    if (!this.readingOpen) return;
+    const logicalIndex = this.logicalPages.findIndex((page) => page.some((ayah) => ayah.verse_number === verseNumber));
+    if (logicalIndex < 0) return;
+    const desiredWindowStart = Math.floor(logicalIndex / 8) * 8;
+    const slot = logicalIndex - desiredWindowStart;
+    const desiredSpread = slot === 0 ? 0 : Math.ceil(slot / 2);
+    const windowChanged = desiredWindowStart !== this.windowStart;
+    if (windowChanged) this.windowStart = desiredWindowStart;
+    if (this.currentSpread === desiredSpread && !windowChanged) return;
+    this.currentSpread = desiredSpread;
+    if (windowChanged) this.renderWindow();
+    this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
+    this.requestFrame();
+  }
+
+  _shiftWindow(delta) {
+    const nextStart = this.windowStart + delta;
+    if (nextStart < 0 || nextStart >= this.logicalPages.length) return false;
+    this.windowStart = nextStart;
+    return true;
+  }
+
+  _slotForLeafFace(leafOrder, isFront) {
+    return leafOrder * 2 + (isFront ? 0 : 1);
+  }
+
+  /** Redraws all 8 physical faces from logicalPages[windowStart..windowStart+7], applying current lang/highlight. */
+  renderWindow() {
+    if (!this.activeBook) return;
+    const total = this.logicalPages.length;
+    for (let leafOrder = 0; leafOrder < PAGINATED_LEAF_COUNT; leafOrder += 1) {
+      [true, false].forEach((isFront) => {
+        const slot = this._slotForLeafFace(leafOrder, isFront);
+        const logicalIndex = this.windowStart + slot;
+        const pageIndex = this.activeBook.pagePivots.length - 1 - leafOrder; // matches bookRig's leafOrder<->pageIndex mapping
+        const surface = isFront ? this.activeBook.pageSurfaces[pageIndex * 2] : this.activeBook.pageSurfaces[pageIndex * 2 + 1];
+        if (!surface) return;
+
+        const oldTexture = surface.material.map;
+        const result = logicalIndex < total
+          ? renderPageFace(this.renderer, {
+              ayahs: this.logicalPages[logicalIndex],
+              lang: this.readLang,
+              activeVerseNumber: this.activeVerseNumber,
+              nextVerseNumber: this.nextVerseNumber,
+              surahNameAr: this.surahNameAr,
+              pageLabel: `${logicalIndex + 1} / ${total}`
+            })
+          : renderBlankFace(this.renderer);
+
+        surface.material.map = result.texture;
+        surface.material.bumpMap = result.texture;
+        surface.material.needsUpdate = true;
+        this._faceHitboxesBySlot[slot] = { pageIndex, isFront, hitboxes: result.hitboxes };
+        if (oldTexture && oldTexture !== result.texture && oldTexture.userData?.isPageContentTexture) oldTexture.dispose();
+      });
+    }
+    this.requestFrame();
+  }
+
+  /** UV-hit-tests a tap against whichever page face was tapped, resolving to a verse number for tap-to-play. */
+  _resolveAyahTapAtPointer() {
+    if (!this.activeBook) return null;
+    this.raycaster.setFromCamera(this.pointer.ndc, this.camera);
+    const hits = this.raycaster.intersectObjects(this.activeBook.pageSurfaces, false);
+    if (!hits.length || !hits[0].uv) return null;
+    const surface = hits[0].object;
+    const entry = this._faceHitboxesBySlot.find((candidate) => candidate && (
+      (candidate.isFront ? this.activeBook.pageSurfaces[candidate.pageIndex * 2] : this.activeBook.pageSurfaces[candidate.pageIndex * 2 + 1]) === surface
+    ));
+    if (!entry) return null;
+    const { u, v } = hits[0].uv;
+    const hit = entry.hitboxes.find((box) => u >= box.u0 && u <= box.u1 && v >= box.v0 && v <= box.v1);
+    return hit ? hit.verseNumber : null;
   }
 
   // --- pointer / drag interaction ------------------------------------------
@@ -821,11 +968,18 @@ export class BookSceneEngine {
     const dragKind = this.pageDrag.kind;
     const releaseDistance = Math.hypot(event.clientX - this.pageDrag.startX, event.clientY - this.pageDrag.startY);
     const shouldClickOpen = event.type === "pointerup" && dragKind === "cover-open" && !this.pageDrag.committed && releaseDistance <= 12;
+    // A near-stationary release on a page (not the cover) is a tap-to-play,
+    // matching the flat reader's click-any-ayah-to-play behavior.
+    const shouldTapAyah = event.type === "pointerup" && dragKind === "page" && !this.pageDrag.committed && releaseDistance <= 12;
     if (this.pageDrag.committed) {
       this.settlePageDrag(true);
     } else if (shouldClickOpen) {
       this.resetPageDrag();
       this.setReadingOpen(true);
+    } else if (shouldTapAyah) {
+      const verseNumber = this._resolveAyahTapAtPointer();
+      this.resetPageDrag();
+      if (verseNumber !== null) this.onAyahTap(verseNumber);
     } else {
       this.cancelPageDrag();
     }
@@ -1057,7 +1211,7 @@ export class BookSceneEngine {
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       materials.filter(Boolean).forEach((material) => {
         Object.values(material).forEach((value) => {
-          if (value?.isTexture) value.dispose();
+          if (value?.isTexture && !value.userData?.isSharedAsset) value.dispose();
         });
         material.dispose();
       });

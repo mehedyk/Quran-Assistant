@@ -19,7 +19,7 @@ import { BookSceneEngine } from "./BookSceneEngine.js";
  * text, bookmark/share controls) can tell the engine to keep the book
  * clear of it, and setSelectedIndex(index) to pick a surah before opening.
  */
-export const BookScene = forwardRef(function BookScene({ books, onSelectionChange, onDetailChange, onClosed }, ref) {
+export const BookScene = forwardRef(function BookScene({ books, onSelectionChange, onDetailChange, onClosed, onAyahTap }, ref) {
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
 
@@ -29,7 +29,8 @@ export const BookScene = forwardRef(function BookScene({ books, onSelectionChang
       books,
       onSelectionChange,
       onDetailChange,
-      onClosed
+      onClosed,
+      onAyahTap
     });
     engineRef.current = engine;
     return () => {
@@ -53,7 +54,11 @@ export const BookScene = forwardRef(function BookScene({ books, onSelectionChang
     setReadingOpen: (open) => engineRef.current?.setReadingOpen(open),
     setSelectedIndex: (index) => engineRef.current?.updateSelection(index, true),
     navigate: (direction) => engineRef.current?.navigate(direction),
-    setDetailPanelBounds: (rect) => engineRef.current?.setDetailPanelBounds(rect)
+    setDetailPanelBounds: (rect) => engineRef.current?.setDetailPanelBounds(rect),
+    setReadingContent: (ayat, lang, surahNameAr) => engineRef.current?.setReadingContent(ayat, lang, surahNameAr),
+    setReadLang: (lang) => engineRef.current?.setReadLang(lang),
+    setActiveVerse: (activeVerseNumber, nextVerseNumber) => engineRef.current?.setActiveVerse(activeVerseNumber, nextVerseNumber),
+    goToVerse: (verseNumber) => engineRef.current?.goToVerse(verseNumber)
   }), []);
 
   return (
