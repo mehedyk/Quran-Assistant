@@ -802,3 +802,89 @@ export function makeBackFoilTexture(book, renderer) {
 
   return configureCanvasTexture(new THREE.CanvasTexture(canvas), renderer);
 }
+
+let sharedWalnutMaps = null;
+
+/**
+ * Procedural walnut wood-grain (color + roughness), shared/cached across
+ * the whole shelf — the shelf itself isn't book-specific. Canvas-drawn
+ * rather than a downloaded photo texture: keeps the whole visual system
+ * on one licensing-free, self-contained generation approach instead of
+ * mixing in an external image asset of unclear provenance.
+ */
+export function makeWalnutMaps(renderer) {
+  if (sharedWalnutMaps) return sharedWalnutMaps;
+  const width = 512;
+  const height = 512;
+  const random = seededRandom(hashSeed("hadi-walnut-shelf"));
+
+  const colorCanvas = document.createElement("canvas");
+  colorCanvas.width = width;
+  colorCanvas.height = height;
+  const colorCtx = colorCanvas.getContext("2d");
+
+  const base = colorCtx.createLinearGradient(0, 0, width, 0);
+  base.addColorStop(0, "#5a3c28");
+  base.addColorStop(0.5, "#6b4a34");
+  base.addColorStop(1, "#4e321f");
+  colorCtx.fillStyle = base;
+  colorCtx.fillRect(0, 0, width, height);
+
+  // Long horizontal grain streaks with gentle sine waviness, varied opacity/tone.
+  for (let streak = 0; streak < 260; streak += 1) {
+    const y = random() * height;
+    const tone = random() > 0.5 ? "rgba(30,18,10,0.10)" : "rgba(120,86,54,0.09)";
+    colorCtx.strokeStyle = tone;
+    colorCtx.lineWidth = 0.6 + random() * 2.2;
+    const waveAmp = 2 + random() * 6;
+    const waveFreq = 0.008 + random() * 0.014;
+    colorCtx.beginPath();
+    for (let x = 0; x <= width; x += 8) {
+      const yy = y + Math.sin(x * waveFreq + streak) * waveAmp;
+      if (x === 0) colorCtx.moveTo(x, yy); else colorCtx.lineTo(x, yy);
+    }
+    colorCtx.stroke();
+  }
+
+  // Occasional darker knots.
+  for (let knot = 0; knot < 5; knot += 1) {
+    const x = random() * width;
+    const y = random() * height;
+    const radius = 6 + random() * 14;
+    const gradient = colorCtx.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, "rgba(20,12,7,0.55)");
+    gradient.addColorStop(0.6, "rgba(20,12,7,0.18)");
+    gradient.addColorStop(1, "rgba(20,12,7,0)");
+    colorCtx.fillStyle = gradient;
+    colorCtx.beginPath();
+    colorCtx.ellipse(x, y, radius, radius * 0.62, random() * Math.PI, 0, Math.PI * 2);
+    colorCtx.fill();
+  }
+
+  const colorTexture = new THREE.CanvasTexture(colorCanvas);
+  colorTexture.wrapS = THREE.RepeatWrapping;
+  colorTexture.wrapT = THREE.RepeatWrapping;
+  colorTexture.repeat.set(3, 1);
+  configureCanvasTexture(colorTexture, renderer, { anisotropy: 16 });
+  colorTexture.userData.isSharedAsset = true;
+
+  const roughnessCanvas = document.createElement("canvas");
+  roughnessCanvas.width = width;
+  roughnessCanvas.height = height;
+  const roughnessCtx = roughnessCanvas.getContext("2d");
+  const roughnessRandom = seededRandom(hashSeed("hadi-walnut-roughness"));
+  for (let y = 0; y < height; y += 1) {
+    const value = Math.round(150 + Math.sin(y * 0.05) * 20 + roughnessRandom() * 30);
+    roughnessCtx.fillStyle = `rgb(${value},${value},${value})`;
+    roughnessCtx.fillRect(0, y, width, 1);
+  }
+  const roughnessTexture = new THREE.CanvasTexture(roughnessCanvas);
+  roughnessTexture.wrapS = THREE.RepeatWrapping;
+  roughnessTexture.wrapT = THREE.RepeatWrapping;
+  roughnessTexture.repeat.set(3, 1);
+  configureCanvasTexture(roughnessTexture, renderer, { color: false, anisotropy: 16 });
+  roughnessTexture.userData.isSharedAsset = true;
+
+  sharedWalnutMaps = { color: colorTexture, roughness: roughnessTexture };
+  return sharedWalnutMaps;
+}

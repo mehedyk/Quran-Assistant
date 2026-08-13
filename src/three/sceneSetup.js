@@ -2,11 +2,10 @@
 // complete-shelf-main/index.html's addRoom/addLights/addDust and the
 // camera/responsive-layout helpers around configureResponsiveTargets.
 //
-// HADI: the original's walnut shelf used an embedded wood-grain photo
-// texture (a large base64 blob baked into the HTML). Not carried over —
-// shared.walnut/walnutDark here are solid PBR colors instead. Swapping in
-// a real wood texture later is a pure visual upgrade, not a structural
-// change (see TODO below), so it's deferred rather than blocking progress.
+// The walnut shelf uses a procedural wood-grain texture (see textures.js
+// makeWalnutMaps) rather than the original demo's embedded base64 photo —
+// self-hosted/generated like everything else here, no external image
+// asset dependency.
 
 import * as THREE from "three";
 import { makeContactShadowTexture } from "./textures.js";
@@ -23,14 +22,7 @@ function createMesh(geometry, material, name, cast = true, receive = true) {
  * Adds the walnut shelf + wood uprights + paper floor/backdrop + contact
  * shadow to the scene. `shared` must include `box`/`plane` geometries and
  * `walnut`/`walnutDark` materials — extend createSharedAssets() from
- * bookRig.js with those two materials before calling this (see TODO).
- *
- * TODO(wood texture): shared.walnut/walnutDark currently have no `.map`.
- * To add the real grain: drop a wood-grain image at
- * /public/textures/walnut.jpg, then in this function do
- *   new THREE.TextureLoader().load('/textures/walnut.jpg', tex => { ... })
- * and assign tex (with wrapS/wrapT = RepeatWrapping, repeat set, rotated
- * for the vertical uprights) to shared.walnut.map / walnutDark.map.
+ * bookRig.js with those two materials before calling this.
  */
 export function addRoom(scene, shelfStage, shared, renderer) {
   const floor = createMesh(

@@ -133,7 +133,7 @@ export class BookSceneEngine {
 
     this.camera = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
 
-    this.shared = createSharedAssets();
+    this.shared = createSharedAssets(this.renderer);
     this.shelfStage = new THREE.Group();
     this.shelfStage.name = "shelf-stage";
     scene.add(this.shelfStage);

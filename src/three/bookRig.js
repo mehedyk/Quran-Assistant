@@ -43,7 +43,8 @@ import {
   makeSpineTexture,
   makeSpineFoilTexture,
   makeBackCoverTexture,
-  makeBackFoilTexture
+  makeBackFoilTexture,
+  makeWalnutMaps
 } from "./textures.js";
 import { createRoundedPlaneGeometry, createPageBlockGeometry } from "./geometry.js";
 
@@ -56,7 +57,8 @@ export const LEAF_COUNT = 6;
  * color, headband color, etc. don't vary per surah — only the cover does).
  * Call once per scene and pass the result into every createBookRig call.
  */
-export function createSharedAssets() {
+export function createSharedAssets(renderer) {
+  const walnutMaps = makeWalnutMaps(renderer);
   return {
     box: new THREE.BoxGeometry(1, 1, 1),
     plane: new THREE.PlaneGeometry(1, 1),
@@ -83,8 +85,15 @@ export function createSharedAssets() {
       sheenRoughness: 0.76
     }),
     // HADI: solid colors for now — see sceneSetup.js TODO for adding a real wood-grain texture map later
-    walnut: new THREE.MeshStandardMaterial({ color: 0x6b4a34, roughness: 0.62, metalness: 0.05 }),
-    walnutDark: new THREE.MeshStandardMaterial({ color: 0x4a3222, roughness: 0.66, metalness: 0.04 })
+    // Procedural wood-grain — see textures.js makeWalnutMaps (self-hosted,
+    // no external image asset). Falls back to a solid color if renderer
+    // isn't provided (shouldn't happen in practice).
+    walnut: new THREE.MeshStandardMaterial({
+      color: 0xffffff, map: walnutMaps?.color, roughnessMap: walnutMaps?.roughness, roughness: 0.62, metalness: 0.05
+    }),
+    walnutDark: new THREE.MeshStandardMaterial({
+      color: 0x8a8a8a, map: walnutMaps?.color, roughnessMap: walnutMaps?.roughness, roughness: 0.7, metalness: 0.04
+    })
   };
 }
 
