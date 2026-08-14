@@ -21,6 +21,7 @@ export default function SurahCarousel({ t, navigate }) {
   const pausedRef = useRef(false);
   const rafRef    = useRef(null);
   const lastTsRef = useRef(null);
+  const offsetRef = useRef(0); // px translated so far, always <= 0
 
   useEffect(() => {
     let cancelled = false;
@@ -32,10 +33,15 @@ export default function SurahCarousel({ t, navigate }) {
     return () => { cancelled = true; };
   }, []);
 
-  // Continuous left -> right drift. The track renders the surah list
-  // twice back-to-back; once we've scrolled past exactly one copy's
-  // width we snap scrollLeft back by that same width, which is
-  // invisible since the content repeats — a classic seamless marquee.
+  // Continuous right -> left drift via CSS transform (not scrollLeft —
+  // scrollLeft's direction/sign semantics are inconsistently implemented
+  // across browsers in RTL contexts, which is exactly the kind of thing
+  // that silently breaks for Arabic/Bangla content; a transform-based
+  // marquee sidesteps that entirely and is direction-unambiguous).
+  // The track renders the surah list twice back-to-back; once we've
+  // translated past exactly one copy's width we snap the offset back by
+  // that same width — invisible since the content repeats, a seamless
+  // marquee that always moves the same way regardless of locale.
   useEffect(() => {
     if (!surahs || surahs.length === 0) return;
     const track = trackRef.current;
@@ -49,8 +55,9 @@ export default function SurahCarousel({ t, navigate }) {
       lastTsRef.current = ts;
       const halfWidth = track.scrollWidth / 2;
       if (halfWidth <= 0) return;
-      track.scrollLeft += PX_PER_SEC * dt;
-      if (track.scrollLeft >= halfWidth) track.scrollLeft -= halfWidth;
+      offsetRef.current -= PX_PER_SEC * dt; // negative = moving left
+      if (offsetRef.current <= -halfWidth) offsetRef.current += halfWidth;
+      track.style.transform = `translateX(${offsetRef.current}px)`;
     }
     rafRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafRef.current);
@@ -90,8 +97,7 @@ export default function SurahCarousel({ t, navigate }) {
     <div className="section">
       <div className="section-label">{t.discoverSurahs}</div>
       <div
-        className="carousel"
-        ref={trackRef}
+        className="carousel-viewport"
         onPointerEnter={pause}
         onPointerLeave={resume}
         onPointerDown={pause}
@@ -99,9 +105,11 @@ export default function SurahCarousel({ t, navigate }) {
         onTouchStart={pause}
         onTouchEnd={resume}
       >
-        {list.map((s, i) => renderCard(s, i, "a"))}
-        {/* duplicate set for the seamless loop — hidden from AT since it's a visual repeat */}
-        {surahs && list.map((s, i) => renderCard(s, i, "b"))}
+        <div className="carousel" ref={trackRef}>
+          {list.map((s, i) => renderCard(s, i, "a"))}
+          {/* duplicate set for the seamless loop — hidden from AT since it's a visual repeat */}
+          {surahs && list.map((s, i) => renderCard(s, i, "b"))}
+        </div>
       </div>
     </div>
   );

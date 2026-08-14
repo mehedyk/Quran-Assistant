@@ -573,6 +573,11 @@ export class BookSceneEngine {
     this.cancelPageDrag();
     this.readingOpen = open;
     if (!this.readingOpen) this.currentSpread = 0;
+    // Defensive re-render: if the initial setReadingContent() call raced
+    // with anything (renderer/WebGL readiness, a texture that failed to
+    // decode, etc.) and left faces blank, opening to read is a natural,
+    // low-cost point to self-heal by redrawing from current state.
+    else if (this.logicalPages.length) this.renderWindow();
     this.onDetailChange(this.activeBook?.data ?? null, this.currentSpread, this.readingOpen, this.getVisibleAyahs());
     this.requestFrame();
   }
@@ -619,6 +624,16 @@ export class BookSceneEngine {
     this.windowStart = 0;
     this.currentSpread = 0;
     this.renderWindow();
+    // The Arabic/translation fonts are loaded via CSS @font-face/@import;
+    // if they weren't ready yet at the render above, canvas silently used
+    // a fallback font for that draw (a raster snapshot, so it won't
+    // auto-update later). Redraw once real fonts are confirmed ready so
+    // the very first page a reader sees isn't stuck in a fallback font.
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (this.logicalPages.length) this.renderWindow();
+      });
+    }
   }
 
   setReadLang(lang) {
@@ -685,16 +700,28 @@ export class BookSceneEngine {
         if (!surface) return;
 
         const oldTexture = surface.material.map;
-        const result = logicalIndex < total
-          ? renderPageFace(this.renderer, {
-              ayahs: this.logicalPages[logicalIndex],
-              lang: this.readLang,
-              activeVerseNumber: this.activeVerseNumber,
-              nextVerseNumber: this.nextVerseNumber,
-              surahNameAr: this.surahNameAr,
-              pageLabel: `${logicalIndex + 1} / ${total}`
-            })
-          : renderBlankFace(this.renderer);
+        // A failure rendering ONE face (bad ayah data, a canvas API quirk
+        // on some device, etc.) must not abort the rest of the window —
+        // an uncaught throw here would silently skip every remaining face
+        // in this loop and leave them on whatever texture they had before
+        // (often the blank shared paper texture), which is exactly the
+        // "blank pages" failure mode this guards against.
+        let result;
+        try {
+          result = logicalIndex < total
+            ? renderPageFace(this.renderer, {
+                ayahs: this.logicalPages[logicalIndex],
+                lang: this.readLang,
+                activeVerseNumber: this.activeVerseNumber,
+                nextVerseNumber: this.nextVerseNumber,
+                surahNameAr: this.surahNameAr,
+                pageLabel: `${logicalIndex + 1} / ${total}`
+              })
+            : renderBlankFace(this.renderer);
+        } catch (error) {
+          console.error(`[BookSceneEngine] failed to render page face (leaf ${leafOrder}, ${isFront ? "front" : "back"}, logical page ${logicalIndex}):`, error);
+          result = renderBlankFace(this.renderer);
+        }
 
         surface.material.map = result.texture;
         surface.material.bumpMap = result.texture;

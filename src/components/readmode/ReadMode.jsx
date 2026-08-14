@@ -57,14 +57,29 @@ export default function ReadMode({ t, data, audio, onClose }) {
   // Auto-open the cover ceremony as soon as the scene mounts, then feed it
   // real content once — this is a single-volume view (no shelf browsing
   // here), so it should present already mid-opening.
+  //
+  // BookScene is lazy-loaded (see import at top), so on a fresh visit the
+  // chunk may not have resolved and sceneRef.current may still be null on
+  // the very next frame — a single rAF attempt would silently no-op via
+  // optional chaining and then wrongly mark itself done, leaving the book
+  // permanently empty. Poll every frame until the ref is actually populated
+  // instead of assuming one frame is enough.
   useEffect(() => {
-    if (contentLoadedRef.current) return;
-    const id = requestAnimationFrame(() => {
-      sceneRef.current?.openDetail();
-      sceneRef.current?.setReadingContent(ayat, readLang, meta?.name_arabic);
-      contentLoadedRef.current = true;
-    });
-    return () => cancelAnimationFrame(id);
+    if (contentLoadedRef.current) return undefined;
+    let cancelled = false;
+    let frameId = 0;
+    function tryInit() {
+      if (cancelled) return;
+      if (sceneRef.current) {
+        sceneRef.current.openDetail();
+        sceneRef.current.setReadingContent(ayat, readLang, meta?.name_arabic);
+        contentLoadedRef.current = true;
+      } else {
+        frameId = requestAnimationFrame(tryInit);
+      }
+    }
+    frameId = requestAnimationFrame(tryInit);
+    return () => { cancelled = true; cancelAnimationFrame(frameId); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

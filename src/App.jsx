@@ -1073,22 +1073,22 @@ const BASE_CSS = `
   body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-wrap:break-word;}
 
   .app{display:flex;min-height:100vh;min-height:100dvh;max-width:100vw;}
-  .sidebar{display:none;}
+  .sidebar{display:none;flex-direction:column;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;}
+  .sidebar-brand{padding:28px 20px 20px;border-bottom:1px solid var(--border);}
+  .sidebar-logo-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:0;}
+  .sidebar-logo{font-family:'UthmanNaskh',serif;font-size:2rem;color:var(--gold2);line-height:1;}
+  .sidebar-tagline{font-size:0.68rem;color:var(--ink);opacity:0.55;margin-top:4px;}
+  .sidebar-nav{flex:1;padding:16px 0;}
+  .sidebar-link{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;cursor:pointer;color:var(--ink);opacity:0.65;font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;text-align:left;transition:all 0.15s;}
+  .sidebar-link:hover{opacity:1;background:rgba(255,255,255,0.05);}
+  .sidebar-link.active{opacity:1;background:rgba(255,255,255,0.1);color:var(--gold2);font-weight:600;border-left:3px solid var(--gold2);}
+  .sidebar-link-icon{width:20px;display:inline-flex;align-items:center;justify-content:center;}
+  .sidebar-footer{padding:12px 0 20px;border-top:1px solid var(--border);}
+  .sidebar-ctrl{display:flex;align-items:center;gap:8px;width:100%;padding:9px 20px;background:none;border:none;cursor:pointer;color:var(--ink);opacity:0.5;font-family:'Hind Siliguri',sans-serif;font-size:0.78rem;text-align:left;transition:opacity 0.15s;}
+  .sidebar-ctrl:hover{opacity:0.85;}
 
   @media(min-width:768px){
-    .sidebar{display:flex;flex-direction:column;width:240px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
-    .sidebar-brand{padding:28px 20px 20px;border-bottom:1px solid var(--border);}
-    .sidebar-logo-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:0;}
-    .sidebar-logo{font-family:'UthmanNaskh',serif;font-size:2rem;color:var(--gold2);line-height:1;}
-    .sidebar-tagline{font-size:0.68rem;color:var(--ink);opacity:0.55;margin-top:4px;}
-    .sidebar-nav{flex:1;padding:16px 0;}
-    .sidebar-link{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;cursor:pointer;color:var(--ink);opacity:0.65;font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;text-align:left;transition:all 0.15s;}
-    .sidebar-link:hover{opacity:1;background:rgba(255,255,255,0.05);}
-    .sidebar-link.active{opacity:1;background:rgba(255,255,255,0.1);color:var(--gold2);font-weight:600;border-left:3px solid var(--gold2);}
-    .sidebar-link-icon{width:20px;display:inline-flex;align-items:center;justify-content:center;}
-    .sidebar-footer{padding:12px 0 20px;border-top:1px solid var(--border);}
-    .sidebar-ctrl{display:flex;align-items:center;gap:8px;width:100%;padding:9px 20px;background:none;border:none;cursor:pointer;color:var(--ink);opacity:0.5;font-family:'Hind Siliguri',sans-serif;font-size:0.78rem;text-align:left;transition:opacity 0.15s;}
-    .sidebar-ctrl:hover{opacity:0.85;}
+    .sidebar{display:flex;width:240px;min-height:100vh;position:sticky;top:0;height:100vh;flex-shrink:0;}
     .topnav{display:none!important;}
     .tab-bar{display:none!important;}
     .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-y:auto;}
@@ -1442,10 +1442,10 @@ const BASE_CSS = `
   }
 
   /* ── Surah carousel (home page) ──────────────────────────────── */
-  .carousel{display:flex;gap:10px;overflow-x:auto;padding:2px 18px 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
-  .carousel::-webkit-scrollbar{height:0;}
+  .carousel-viewport{overflow:hidden;padding:2px 0 14px;}
+  .carousel{display:flex;gap:10px;padding:0 18px;width:max-content;will-change:transform;}
   .carousel-card{
-    scroll-snap-align:start;flex:0 0 132px;background:var(--bg3);border:1px solid var(--border);
+    flex:0 0 132px;background:var(--bg3);border:1px solid var(--border);
     border-radius:14px;padding:12px;text-align:center;cursor:pointer;
     opacity:0;transform:translateY(10px) scale(0.96);
     transition:transform var(--dur-base) var(--ease), box-shadow var(--dur-base) ease, border-color var(--dur-fast) ease, opacity var(--dur-base) var(--ease);
