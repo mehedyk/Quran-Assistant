@@ -1072,7 +1072,7 @@ const BASE_CSS = `
   html{font-size:16px;scroll-behavior:smooth;overflow-x:hidden;}
   body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-wrap:break-word;}
 
-  .app{display:flex;min-height:100vh;min-height:100dvh;max-width:100vw;}
+  .app{display:flex;min-height:100vh;min-height:100dvh;max-width:100vw;min-width:0;}
   .sidebar{display:none;flex-direction:column;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;}
   .sidebar-brand{padding:28px 20px 20px;border-bottom:1px solid var(--border);}
   .sidebar-logo-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:0;}
@@ -1104,7 +1104,7 @@ const BASE_CSS = `
     .surah-grid{grid-template-columns:repeat(4,1fr)!important;}
   }
 
-  .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
+  .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;min-width:0;max-width:100%;}
   .topnav{height:52px;display:flex;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--fill);position:sticky;top:0;z-index:100;}
   .topnav-actions{margin-left:auto;}
   .topnav-logo-btn{display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;}
@@ -1112,7 +1112,7 @@ const BASE_CSS = `
   .topnav-actions{display:flex;gap:6px;}
   .nav-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:white;font-size:0.9rem;cursor:pointer;display:grid;place-items:center;transition:background 0.15s;}
   .nav-btn:hover{background:rgba(255,255,255,0.16);}
-  .main{flex:1;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
+  .main{flex:1;min-width:0;max-width:100%;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
   @media(min-width:768px){.main{padding-bottom:0;}}
   .tab-bar{height:60px;display:flex;background:var(--bg3);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
   .tab{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;cursor:pointer;color:var(--ink3);transition:color 0.15s;padding:5px 2px;}
@@ -1129,7 +1129,7 @@ const BASE_CSS = `
   .footer a:hover{color:var(--gold);}
   .footer-sep{opacity:0.4;}
 
-  .page{padding-bottom:24px;}
+  .page{padding-bottom:24px;min-width:0;max-width:100%;overflow-x:hidden;}
   .page-header{padding:20px 18px 10px;}
   .page-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--green);font-style:italic;}
   .page-sub{font-size:0.78rem;color:var(--ink3);margin-top:3px;}
@@ -1442,7 +1442,7 @@ const BASE_CSS = `
   }
 
   /* ── Surah carousel (home page) ──────────────────────────────── */
-  .carousel-viewport{overflow:hidden;padding:2px 0 14px;}
+  .carousel-viewport{overflow:hidden;padding:2px 0 14px;width:100%;max-width:100%;min-width:0;}
   .carousel{display:flex;gap:10px;padding:0 18px;width:max-content;will-change:transform;}
   .carousel-card{
     flex:0 0 132px;background:var(--bg3);border:1px solid var(--border);
