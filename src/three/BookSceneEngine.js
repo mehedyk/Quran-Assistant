@@ -637,7 +637,10 @@ export class BookSceneEngine {
   }
 
   setReadLang(lang) {
-    if (this.readLang === lang) return;
+    // No early-return-if-unchanged guard here on purpose: if an earlier
+    // render attempt silently failed for any reason, tapping the same
+    // language button again should still force a fresh redraw rather than
+    // no-op and leave the reader stuck looking at a blank/stale page.
     this.readLang = lang;
     this.renderWindow();
   }

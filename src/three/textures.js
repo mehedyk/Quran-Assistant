@@ -244,7 +244,7 @@ export function makeCoverTexture(book, renderer) {
   ctx.fillStyle = edge;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (let line = 0; line < 1250; line += 1) {
+  for (let line = 0; line < 700; line += 1) {
     const x = random() * canvas.width;
     const y = random() * canvas.height;
     const length = 4 + random() * 22;
@@ -362,7 +362,11 @@ export function makeClothBumpTexture(book, renderer) {
 
 /** Normal + roughness maps for the cloth weave, procedurally derived from a height field. */
 export function makeClothSurfaceMaps(book, renderer) {
-  const size = 256;
+  // 160 instead of 256 — still plenty of detail for a bump/normal map at
+  // the tiled scale this is used at, but cuts the nested-loop cost (the
+  // heaviest single piece of work in book construction) to well under
+  // half, since cost scales with size².
+  const size = 160;
   const heightField = new Float32Array(size * size);
   const normalCanvas = document.createElement("canvas");
   const roughnessCanvas = document.createElement("canvas");
@@ -452,7 +456,7 @@ export function drawPaperSurface(ctx, width, height, random) {
   ctx.fillStyle = paperWash;
   ctx.fillRect(0, 0, width, height);
 
-  for (let fiber = 0; fiber < 2400; fiber += 1) {
+  for (let fiber = 0; fiber < 1400; fiber += 1) {
     const x = random() * width;
     const y = random() * height;
     const length = 5 + random() * 34;
@@ -467,7 +471,7 @@ export function drawPaperSurface(ctx, width, height, random) {
     ctx.stroke();
   }
 
-  for (let fleck = 0; fleck < 1200; fleck += 1) {
+  for (let fleck = 0; fleck < 700; fleck += 1) {
     const tone = Math.round(112 + random() * 94);
     ctx.fillStyle = `rgba(${tone},${tone - 5},${tone - 13},${0.016 + random() * 0.025})`;
     const size = 0.5 + random() * 1.1;
@@ -641,7 +645,7 @@ export function makeSpineTexture(book, renderer) {
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (let thread = 0; thread < 1900; thread += 1) {
+  for (let thread = 0; thread < 1100; thread += 1) {
     const x = random() * canvas.width;
     const y = random() * canvas.height;
     const vertical = random() > 0.42;
@@ -725,7 +729,7 @@ export function makeBackCoverTexture(book, renderer) {
   ctx.fillStyle = edgeShade;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (let thread = 0; thread < 2600; thread += 1) {
+  for (let thread = 0; thread < 1500; thread += 1) {
     const x = random() * canvas.width;
     const y = random() * canvas.height;
     const length = 5 + random() * 30;

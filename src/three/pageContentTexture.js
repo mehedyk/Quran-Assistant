@@ -71,63 +71,76 @@ export function renderPageFace(renderer, { ayahs, lang, activeVerseNumber, nextV
   let cursorY = 110;
 
   (ayahs || []).forEach((ayah) => {
-    const isActive = activeVerseNumber === ayah.verse_number;
-    const isNext = nextVerseNumber === ayah.verse_number;
-    const blockTop = cursorY;
+    try {
+      const isActive = activeVerseNumber === ayah.verse_number;
+      const isNext = nextVerseNumber === ayah.verse_number;
+      const blockTop = cursorY;
 
-    ctx.textAlign = "right";
-    ctx.direction = "rtl";
-    ctx.fillStyle = "#9c7a35";
-    ctx.font = '600 13px Inter, "Helvetica Neue", Arial, sans-serif';
-    ctx.fillText(String(ayah.verse_number), canvas.width - marginX, cursorY);
-    cursorY += 6;
+      ctx.textAlign = "right";
+      ctx.direction = "rtl";
+      ctx.fillStyle = "#9c7a35";
+      ctx.font = '600 13px Inter, "Helvetica Neue", Arial, sans-serif';
+      ctx.fillText(String(ayah.verse_number), canvas.width - marginX, cursorY);
+      cursorY += 6;
 
-    ctx.font = '400 30px "UthmanNaskh", "Aref Ruqaa", serif';
-    ctx.fillStyle = "#241a10";
-    ctx.textAlign = "right";
-    const arabicLines = wrapText(ctx, ayah.text_uthmani || "", contentWidth);
-    arabicLines.forEach((line) => {
-      cursorY += 40;
-      ctx.fillText(line, canvas.width - marginX, cursorY);
-    });
-    cursorY += 14;
+      ctx.font = '400 34px "UthmanNaskh", "Aref Ruqaa", serif';
+      ctx.fillStyle = "#241a10";
+      ctx.textAlign = "right";
+      const arabicLines = wrapText(ctx, ayah.text_uthmani || "", contentWidth);
+      arabicLines.forEach((line) => {
+        cursorY += 44;
+        ctx.fillText(line, canvas.width - marginX, cursorY);
+      });
+      cursorY += 14;
 
-    if (lang !== "off") {
-      const resourceId = lang === "bn" ? 161 : 131;
-      const raw = ayah.translations?.find((tr) => Number(tr.resource_id) === resourceId)?.text || "";
-      const plain = raw.replace(/<[^>]*>/g, "");
-      if (plain) {
-        ctx.font = '400 16px "Hind Siliguri", Inter, sans-serif';
-        ctx.fillStyle = "rgba(60,48,34,0.82)";
-        ctx.direction = "ltr";
-        ctx.textAlign = "left";
-        const translationLines = wrapText(ctx, plain, contentWidth);
-        translationLines.forEach((line) => {
-          cursorY += 24;
-          ctx.fillText(line, marginX, cursorY);
-        });
-        cursorY += 8;
+      // Translation rendering is deliberately isolated in its own
+      // try/catch: a failure here (bad markup, an unexpected character,
+      // anything) must never discard the Arabic text already committed
+      // above it on this same canvas — that was the likely cause of
+      // reports that switching languages made the Arabic disappear.
+      try {
+        if (lang !== "off") {
+          const resourceId = lang === "bn" ? 161 : 131;
+          const raw = ayah.translations?.find((tr) => Number(tr.resource_id) === resourceId)?.text || "";
+          const plain = raw.replace(/<[^>]*>/g, "");
+          if (plain) {
+            ctx.font = '400 19px "Hind Siliguri", Inter, sans-serif';
+            ctx.fillStyle = "rgba(60,48,34,0.82)";
+            ctx.direction = "ltr";
+            ctx.textAlign = "left";
+            const translationLines = wrapText(ctx, plain, contentWidth);
+            translationLines.forEach((line) => {
+              cursorY += 27;
+              ctx.fillText(line, marginX, cursorY);
+            });
+            cursorY += 8;
+          }
+        }
+      } catch (translationError) {
+        console.warn(`[pageContentTexture] translation render failed for ayah ${ayah.verse_number} (lang=${lang}):`, translationError);
       }
+
+      const blockBottom = cursorY + 6;
+      if (isActive || isNext) {
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillStyle = isActive ? "rgba(212,175,55,0.16)" : "rgba(212,175,55,0.07)";
+        ctx.fillRect(marginX - 12, blockTop - 22, contentWidth + 24, blockBottom - blockTop + 16);
+        ctx.restore();
+      }
+
+      hitboxes.push({
+        verseNumber: ayah.verse_number,
+        u0: 0, u1: 1,
+        v0: 1 - blockBottom / canvas.height,
+        v1: 1 - (blockTop - 22) / canvas.height
+      });
+
+      cursorY = blockBottom + 20;
+      ctx.direction = "ltr";
+    } catch (ayahError) {
+      console.warn(`[pageContentTexture] failed to render ayah ${ayah?.verse_number}:`, ayahError);
     }
-
-    const blockBottom = cursorY + 6;
-    if (isActive || isNext) {
-      ctx.save();
-      ctx.globalCompositeOperation = "destination-over";
-      ctx.fillStyle = isActive ? "rgba(212,175,55,0.16)" : "rgba(212,175,55,0.07)";
-      ctx.fillRect(marginX - 12, blockTop - 22, contentWidth + 24, blockBottom - blockTop + 16);
-      ctx.restore();
-    }
-
-    hitboxes.push({
-      verseNumber: ayah.verse_number,
-      u0: 0, u1: 1,
-      v0: 1 - blockBottom / canvas.height,
-      v1: 1 - (blockTop - 22) / canvas.height
-    });
-
-    cursorY = blockBottom + 20;
-    ctx.direction = "ltr";
   });
 
   if (pageLabel) {

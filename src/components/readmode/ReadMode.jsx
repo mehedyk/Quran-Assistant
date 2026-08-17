@@ -143,7 +143,8 @@ export default function ReadMode({ t, data, audio, onClose }) {
               <button className="reader-play-btn" onClick={() => isPlayingThis ? audio.togglePause() : playFromHere(visibleAyahs[0]?.verse_number)}>
                 {isPlayingThis ? `⏸ ${t.stop}` : `▶ ${t.playSurah}`}
               </button>
-              <div className="reader-lang-toggle">
+              <div className="reader-lang-toggle" style={{ "--active-index": ["off","bn","en"].indexOf(readLang) }}>
+                <div className="reader-lang-thumb" aria-hidden="true" />
                 {["off","bn","en"].map(v => (
                   <button key={v} className={`reader-lang-pill ${readLang===v?"active":""}`} onClick={() => setLang(v)}>
                     {v === "off" ? "AR" : v.toUpperCase()}

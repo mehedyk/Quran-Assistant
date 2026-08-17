@@ -27,18 +27,30 @@ export function useAudioQueue() {
     if (!item) { setIsPlaying(false); return; }
     if (audioRef.current) {
       audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
     }
     const a = new Audio(item.url);
     audioRef.current = a;
     setLoading(true);
     a.oncanplaythrough = () => setLoading(false);
+    a.onplaying = () => setLoading(false); // canplaythrough isn't reliably fired on every mobile browser — this is the real safety net
     a.onended = () => {
       const next = indexRef.current + 1;
       if (next < queueRef.current.length) { setIndex(next); loadAndPlay(next); }
       else { setIsPlaying(false); setIndex(-1); }
     };
-    a.onerror = () => { setLoading(false); setIsPlaying(false); };
+    // A single verse's audio failing to load (network blip, a bad URL for
+    // that one ayah, etc.) used to just stop playback dead right there —
+    // meaning "play the whole surah" could silently cut off partway
+    // through with no warning. Treat a load/playback error the same way
+    // as a track ending: skip it and keep the queue moving.
+    a.onerror = () => {
+      setLoading(false);
+      const next = indexRef.current + 1;
+      if (next < queueRef.current.length) { setIndex(next); loadAndPlay(next); }
+      else { setIsPlaying(false); setIndex(-1); }
+    };
     a.play().then(() => setIsPlaying(true)).catch(() => { setLoading(false); setIsPlaying(false); });
   }, []);
 
