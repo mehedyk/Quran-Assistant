@@ -1,0 +1,358 @@
+/* ══════════════════════════════════════════════════════════════════
+   HADI DESIGN SYSTEM — implemented from "Al Hadi remake.fig"
+
+   One stylesheet, five themes. Nothing here hard-codes a colour: every
+   colour is a CSS variable set on <html> by useTheme.js from THEMES in
+   utils/constants.js (--bg, --surface, --surface2, --line, --text,
+   --muted, --accent, --on-accent, --ornament ...). Switching waqt
+   changes the variables; layout, state and data are untouched.
+
+   Measurements come from the Figma frames (1440 desktop): 96px
+   header, 76px theme row, 1248px content width (96px gutters), card
+   radii 16/18, button radii 10/12, 450x508 dawn arch.
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --font-ui:      'Hind Siliguri', system-ui, sans-serif;
+  --font-display: 'Noto Serif Bengali', 'Hind Siliguri', serif;
+  --font-arabic:  'Amiri', 'UthmanNaskh', serif;
+  --font-quran:   'UthmanNaskh', 'Amiri', serif;
+  --gutter:       clamp(16px, 6.667vw, 96px);
+  --max:          1440px;
+}
+
+body { font-family: var(--font-ui); background: var(--bg); color: var(--text); }
+
+/* ── App frame ─────────────────────────────────────────────────── */
+.app  { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; max-width: 100vw; min-width: 0; }
+.main { flex: 1; min-width: 0; max-width: 100%; }
+
+.page { padding-bottom: 24px; min-width: 0; max-width: 900px; margin: 0 auto; overflow-x: hidden; animation: pageIn 0.28s cubic-bezier(.22,.61,.36,1); }
+.page-header { padding: 28px 18px 12px; }
+.home-page { max-width: var(--max); padding: 0 var(--gutter); overflow-x: clip; overflow-y: visible; padding-bottom: 0; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .page { animation: none; } }
+
+.surah-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 18px; }
+@media (min-width: 768px)  { .surah-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1100px) { .surah-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* ── Shared buttons & links (Figma button styles) ──────────────── */
+.btn-accent, .btn-raised, .btn-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  font-family: var(--font-ui); cursor: pointer; white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-accent  { height: 58px; padding: 0 26px; gap: 15px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-size: 20px; font-weight: 600; }
+.btn-accent:hover  { background: var(--accent-hover); }
+.btn-outline { height: 58px; padding: 0 20px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--text); font-size: 18px; font-weight: 400; }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-raised  { height: 48px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--surface2); color: var(--text); font-size: 18px; font-weight: 400; }
+.btn-raised:hover, .btn-raised.is-on { background: var(--surface2); box-shadow: inset 0 0 0 1px var(--accent); }
+.btn-sm { height: 48px; padding: 0 20px; border-radius: 10px; font-size: 18px; font-weight: 500; }
+.btn-accent:active, .btn-raised:active, .btn-outline:active { transform: scale(0.98); }
+
+.text-link { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0; color: var(--accent); font-family: var(--font-ui); font-size: 16px; line-height: 24px; cursor: pointer; }
+.text-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+.eyebrow { display: block; color: var(--accent); font-size: 14px; line-height: 21px; font-weight: 500; }
+.home-section { padding: 0; }
+.section-heading { font: 600 clamp(24px, 5vw, 32px)/1.5 var(--font-ui); color: var(--text); }
+.section-subtitle { margin-top: 3px; font-size: clamp(15px, 2.4vw, 18px); line-height: 1.5; color: var(--muted); }
+
+/* ── Header (Figma "Navigation", 1440x96) ──────────────────────── */
+.site-header { position: sticky; top: 0; z-index: 100; background: var(--bg); }
+.site-header-inner { position: relative; max-width: var(--max); margin: 0 auto; height: 96px; padding: 0 var(--gutter); display: flex; align-items: center; gap: 20px; }
+.site-header-inner::after { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); bottom: 0; height: 1px; background: var(--line); }
+
+.brand { display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; flex-shrink: 0; }
+.brand-wordmark { font-family: var(--font-arabic); font-size: 44px; line-height: 1.5; color: var(--accent); }
+.brand-descriptor { font-size: 16px; color: var(--muted); white-space: nowrap; }
+
+.primary-nav { display: flex; align-items: center; gap: clamp(22px, 2.8vw, 42px); margin-left: clamp(24px, 6.5vw, 96px); }
+.primary-link { position: relative; height: 24px; padding: 0; background: none; border: 0; font: 400 16px/24px var(--font-ui); color: var(--muted); cursor: pointer; white-space: nowrap; transition: color 0.15s ease; }
+.primary-link:hover { color: var(--text); }
+.primary-link.active { color: var(--accent); font-weight: 600; }
+.primary-link.active::after { content: ""; position: absolute; left: 0; top: 36px; width: 30px; height: 2px; background: var(--accent); }
+
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: 24px; }
+.saved-btn { height: 48px; min-width: 120px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--surface); color: var(--text); font: 400 17px var(--font-ui); cursor: pointer; transition: box-shadow 0.15s ease, background 0.15s ease; }
+.saved-btn:hover, .saved-btn.active { box-shadow: inset 0 0 0 1px var(--accent); }
+.lang-toggle { background: none; border: 0; padding: 8px 0; font: 400 13px/19.5px 'Inter', var(--font-ui); color: var(--muted); cursor: pointer; white-space: nowrap; }
+.lang-toggle .on { color: var(--text); font-weight: 500; }
+.lang-toggle:hover .on { color: var(--accent); }
+
+/* hamburger (menu drawer) — shown below 1024px */
+.hamburger { display: none; width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: background 0.15s ease; }
+.hamburger:hover { background: var(--surface2); }
+.hamburger span { width: 16px; height: 2px; background: var(--text); border-radius: 2px; transition: transform 0.28s cubic-bezier(.22,.61,.36,1), opacity 0.15s ease; }
+.hamburger-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+@media (max-width: 1099.98px) { .brand-descriptor { display: none; } }
+@media (max-width: 1023.98px) {
+  .hamburger { display: flex; }
+  .primary-nav { display: none; }
+  .site-header-inner { height: 80px; }
+  .brand-descriptor { display: inline; }
+}
+@media (max-width: 767.98px) {
+  .site-header-inner { height: 64px; gap: 12px; }
+  .brand-wordmark { font-size: 36px; }
+  .brand-descriptor, .saved-btn { display: none; }
+  .header-actions { gap: 8px; }
+  .lang-toggle { padding: 10px 4px; font-size: 14px; }
+}
+
+/* ── Menu drawer (below 1024px) ────────────────────────────────── */
+.drawer-scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 290; animation: fadeIn 0.28s ease; }
+.drawer { position: fixed; top: 0; left: 0; bottom: 0; width: min(300px, 82vw); z-index: 300; display: flex; flex-direction: column; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--line); box-shadow: 2px 0 30px rgba(0,0,0,0.35); animation: drawerSlide 0.28s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes drawerSlide { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@media (min-width: 1024px) { .drawer, .drawer-scrim { display: none; } }
+.drawer-brand { padding: 24px 20px 18px; border-bottom: 1px solid var(--line); }
+.drawer-logo-btn { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; }
+.drawer-tagline { margin-top: 6px; font-size: 0.78rem; color: var(--muted); }
+.drawer-nav { flex: 1; padding: 14px 0; }
+.drawer-link { display: flex; align-items: center; gap: 12px; width: calc(100% - 10px); margin-right: 10px; padding: 12px 20px; background: none; border: 0; border-left: 3px solid transparent; border-radius: 0 20px 20px 0; color: var(--muted); font: 400 0.95rem var(--font-ui); text-align: left; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.drawer-link:hover { color: var(--text); background: var(--surface2); }
+.drawer-link.active { color: var(--accent); background: var(--surface2); border-left-color: var(--accent); font-weight: 600; }
+.drawer-link-icon { width: 20px; display: inline-flex; justify-content: center; }
+.drawer-footer { padding: 12px 0 20px; border-top: 1px solid var(--line); }
+.drawer-ctrl { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 20px; background: none; border: 0; color: var(--muted); font: 400 0.85rem var(--font-ui); text-align: left; cursor: pointer; }
+.drawer-ctrl:hover { color: var(--text); }
+.drawer-ctrl-mark { min-width: 28px; font-weight: 600; color: var(--accent); }
+
+/* ── Prayer theme selector (Figma, 1440x76) ────────────────────── */
+.theme-bar { display: none; }
+@media (min-width: 768px) { .theme-bar { display: block; } }
+.theme-bar-inner { max-width: var(--max); margin: 0 auto; height: 76px; padding: 0 var(--gutter); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.theme-bar-label { font-size: 15px; line-height: 22.5px; color: var(--muted); }
+.theme-tabs { display: flex; gap: 2px; padding: 4px; background: var(--surface); border-radius: 25px; }
+.theme-tab { display: flex; align-items: center; gap: 10px; min-width: 116px; height: 42px; padding: 0 16px; border: 0; border-radius: 21px; background: transparent; color: var(--muted); font: 500 16px var(--font-ui); white-space: nowrap; cursor: pointer; transition: background 0.2s ease, color 0.2s ease; }
+.theme-tab:hover { color: var(--text); }
+.theme-tab.active { background: var(--accent); color: var(--on-accent); }
+@media (max-width: 899.98px) { .theme-bar-label { display: none; } .theme-bar-inner { justify-content: center; } }
+@media (max-width: 859.98px) { .theme-tab { min-width: 0; padding: 0 12px; gap: 6px; font-size: 14px; } }
+
+/* phones keep the floating theme orb instead */
+@media (min-width: 768px) { .theme-orb-wrap { display: none; } }
+
+/* ── Phone bottom tab bar ──────────────────────────────────────── */
+@media (min-width: 768px) { .tab-bar { display: none; } }
+.tab-bar { background: var(--surface); border-top: 1px solid var(--line); }
+
+/* ── Hero (Figma "Hero", 1440x592) ─────────────────────────────── */
+.home-hero { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 31.25vw, 450px); column-gap: clamp(24px, 3.3vw, 48px); align-items: start; padding: 46px clamp(0px, 3.06vw, 44px) 54px 0; }
+.hero-copy { min-width: 0; }
+.verified-badge { display: inline-flex; align-items: center; gap: 9px; height: 34px; padding: 0 16px 0 12px; border-radius: 17px; background: var(--surface); color: var(--accent); font-size: 15px; }
+.hero-headline { margin-top: 28px; font: 400 clamp(32px, 3.75vw + 8px, 54px)/1.55 var(--font-display); color: var(--text); letter-spacing: 0; }
+.hero-description { margin-top: 26px; max-width: 646px; font-size: clamp(16px, 1.4vw + 2px, 20px); line-height: 1.65; color: var(--muted); }
+.hero-actions { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 16px; }
+.hero-actions .btn-accent { min-width: 215px; }
+.hero-actions .btn-outline { min-width: 183px; }
+.hero-note { margin-top: 30px; font-size: 15px; line-height: 22.5px; color: var(--muted); }
+
+.hero-visual { position: relative; margin-top: -16px; }
+.dawn-arch { position: relative; width: 100%; aspect-ratio: 450 / 508; container-type: inline-size; overflow: hidden;
+  border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface2), var(--bg));
+  border-radius: 50% 50% 20px 20px / 44.29% 44.29% 20px 20px; }
+.dawn-arch-inner { position: absolute; inset: 3.54% 4%; border: 1px solid var(--line); border-radius: 50% 50% 12px 12px / 43.86% 43.86% 12px 12px; }
+.dawn-light { position: absolute; left: 26.67%; top: 14.17%; width: 46.67%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 70%); }
+.dawn-arch > div:not(.dawn-arch-inner):not(.dawn-light):not(.arch-rule) { position: absolute; text-align: center; }
+.arch-bismillah { left: 10.2%; top: 22.64%; width: 79.6%; font-family: var(--font-arabic); font-size: 6.22cqw; line-height: 1.5; color: var(--accent); }
+.arch-title     { left: 6.67%; top: 37.8%; width: 86.67%; font-family: var(--font-arabic); font-size: 14.67cqw; line-height: 1.6; color: var(--text); }
+.arch-caption   { left: 11.1%; top: 62.6%; width: 77.8%; font-size: 4.44cqw; line-height: 1.5; color: var(--muted); }
+.arch-rule      { position: absolute; left: 38.9%; top: 74.4%; width: 22.2%; height: 1px; background: var(--ornament); }
+.arch-english   { left: 13.3%; top: 79.7%; width: 73.3%; font: 500 max(10px, 2.44cqw)/1.5 'Inter', var(--font-ui); color: var(--ornament); }
+
+.theme-badge { position: absolute; left: 34.4%; top: 94.9%; display: inline-flex; align-items: center; gap: 12px; height: 46px; padding: 0 22px 0 20px; border-radius: 23px; background: var(--surface2); color: var(--accent); font-size: 16px; white-space: nowrap; box-shadow: 0 0 0 1px var(--line); }
+
+@media (max-width: 899.98px) {
+  .home-hero { grid-template-columns: minmax(0, 1fr); padding: 28px 0 40px; row-gap: 40px; }
+  .hero-visual { margin-top: 0; width: min(100%, 340px); margin-inline: auto; padding-bottom: 24px; }
+  .theme-badge { left: 50%; transform: translateX(-50%); top: auto; bottom: 0; }
+  .hero-actions .btn-accent, .hero-actions .btn-outline { height: 52px; font-size: 17px; padding: 0 20px; min-width: 0; }
+}
+@media (max-width: 479.98px) {
+  .hero-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* ── Quick lookup (Figma, 1248x150 panel) ──────────────────────── */
+.lookup-section { padding: 8px 0 26px; }
+.lookup-panel { display: grid; grid-template-columns: minmax(0, 370px) minmax(0, 1fr); column-gap: 58px; align-items: start; padding: 22px 28px 20px; background: var(--surface); border-radius: 18px; }
+.lookup-title { font: 500 23px/1.5 var(--font-ui); color: var(--text); padding-top: 1px; }
+.lookup-hint { margin-top: 6px; font-size: 16px; line-height: 24px; color: var(--muted); }
+.search-field { display: flex; align-items: center; gap: 16px; height: 62px; padding: 0 7px 0 20px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.search-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.search-field-icon { flex-shrink: 0; color: var(--muted); }
+.search-field-input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; outline: none !important; color: var(--text); font: 400 18px var(--font-ui); }
+.search-field-input::placeholder { color: var(--muted); opacity: 1; }
+.search-field-submit { flex-shrink: 0; width: 64px; height: 48px; display: grid; place-items: center; border: 0; border-radius: 9px; background: var(--accent); color: var(--on-accent); cursor: pointer; transition: background 0.15s ease; }
+.search-field-submit:hover { background: var(--accent-hover); }
+.quick-refs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 13px; margin-top: 14px; }
+.quick-refs-label { margin-right: 2px; font-size: 14px; color: var(--muted); }
+.ref-chip { height: 32px; min-width: 88px; padding: 0 16px; border: 0; border-radius: 16px; background: var(--surface2); color: var(--accent); font: 400 15px var(--font-ui); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.ref-chip:hover { background: var(--accent); color: var(--on-accent); }
+@media (max-width: 1099.98px) { .lookup-panel { grid-template-columns: minmax(0, 260px) minmax(0, 1fr); column-gap: 32px; } .lookup-title { font-size: 20px; } }
+@media (max-width: 859.98px) {
+  .lookup-panel { grid-template-columns: minmax(0, 1fr); row-gap: 18px; padding: 20px 18px; }
+  .search-field { height: 56px; gap: 12px; padding-left: 14px; }
+  .search-field-input { font-size: 16px; }
+  .search-field-submit { width: 52px; height: 44px; }
+}
+
+/* ── Daily ayah (Figma, 1248x302 card) ─────────────────────────── */
+.daily-section { padding: 30px 0 52px; }
+.daily-card { display: grid; grid-template-columns: minmax(0, 380px) 1px minmax(0, 1fr); align-items: stretch; column-gap: 34px; padding: 26px 44px 35px 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+.daily-meta { min-width: 0; }
+.daily-title { margin-top: 13px; font: 600 30px/1.5 var(--font-ui); color: var(--text); }
+.daily-source { margin-top: 6px; font-size: 16px; line-height: 24px; color: var(--muted); }
+.daily-note { margin-top: 19px; font-size: 16px; line-height: 24px; color: var(--muted); }
+.daily-divider { width: 1px; background: var(--line); margin-top: 9px; min-height: 230px; }
+.daily-verse { min-width: 0; display: flex; flex-direction: column; }
+.daily-arabic { font-family: var(--font-quran); font-size: 43px; line-height: 1.6; text-align: right; color: var(--text); }
+.daily-translation { margin-top: 17px; font: 400 25px/1.5 var(--font-ui); text-align: right; color: var(--text); }
+.daily-actions { margin-top: auto; padding-top: 52px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; }
+.daily-buttons { display: flex; flex-wrap: wrap; gap: 14px; }
+.daily-card[data-size="medium"] .daily-arabic { font-size: 36px; }
+.daily-card[data-size="medium"] .daily-translation { font-size: 21px; }
+.daily-card[data-size="long"] .daily-arabic { font-size: 30px; line-height: 1.9; }
+.daily-card[data-size="long"] .daily-translation { font-size: 18px; text-align: right; }
+.daily-card[data-size="long"] .daily-actions, .daily-card[data-size="medium"] .daily-actions { padding-top: 28px; }
+.daily-skeleton { grid-column: 1 / -1; height: 200px; }
+.daily-error { grid-column: 1 / -1; padding: 40px 0; text-align: center; color: var(--muted); }
+@media (max-width: 1099.98px) {
+  .daily-card { grid-template-columns: minmax(0, 260px) 1px minmax(0, 1fr); padding: 24px 28px 32px 28px; column-gap: 24px; }
+  .daily-arabic { font-size: 36px; } .daily-translation { font-size: 21px; }
+}
+@media (max-width: 859.98px) {
+  .daily-section { padding: 16px 0 36px; }
+  .daily-card { grid-template-columns: minmax(0, 1fr); column-gap: 0; padding: 22px 20px 24px; }
+  .daily-divider { width: auto; height: 1px; min-height: 0; margin: 20px 0; }
+  .daily-title { font-size: 24px; }
+  .daily-arabic { font-size: 32px; } .daily-translation { font-size: 19px; }
+  .daily-card[data-size="long"] .daily-arabic { font-size: 26px; }
+  .daily-actions { padding-top: 24px; }
+}
+@media (max-width: 479.98px) {
+  .daily-buttons { width: 100%; } .daily-buttons .btn-sm { flex: 1; padding: 0 12px; }
+}
+
+/* ── Surah discovery carousel (Figma, 1440x436) ────────────────── */
+.carousel-section { padding: 8px 0 36px; }
+.section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px 24px; flex-wrap: wrap; }
+.section-head-actions { display: flex; align-items: center; gap: 30px; padding-top: 16px; }
+.section-head-actions .text-link { font-size: 17px; }
+.round-btns { display: flex; gap: 8px; }
+.round-btn { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); color: var(--accent); cursor: pointer; transition: border-color 0.15s ease, opacity 0.15s ease; }
+.round-btn:hover:not(:disabled) { border-color: var(--accent); }
+.round-btn:disabled { opacity: 0.4; cursor: default; }
+
+.surah-track { --cols: 4; display: flex; gap: 24px; margin-top: 26px; padding: 6px 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.surah-track::-webkit-scrollbar { display: none; }
+.surah-tile, .surah-tile-skeleton { flex: 0 0 calc((100% - (var(--cols) - 1) * 24px) / var(--cols)); min-width: 0; height: 232px; }
+.surah-tile { scroll-snap-align: start; display: flex; flex-direction: column; align-items: stretch; text-align: left; padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; color: var(--text); cursor: pointer;
+  opacity: 0; transform: translateY(10px) scale(0.96);
+  transition: transform 0.28s cubic-bezier(.22,.61,.36,1), border-color 0.15s ease, background 0.2s ease, opacity 0.28s cubic-bezier(.22,.61,.36,1); }
+.surah-tile-in { opacity: 1; transform: none; }
+.surah-tile:hover { border-color: var(--accent); transform: translateY(-3px); }
+.surah-tile.is-active { background: var(--surface2); border-color: var(--accent); }
+.surah-tile:focus-visible { outline-offset: -3px; }
+.surah-tile-skeleton { border-radius: 16px; }
+.surah-tile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.surah-tile-num { min-width: 46px; height: 40px; padding: 0 8px; display: grid; place-items: center; background: var(--bg); border-radius: 9px; color: var(--accent); font-size: 16px; }
+.surah-tile-ar { font-family: var(--font-arabic); font-size: 35px; line-height: 1.5; color: var(--accent); text-align: right; direction: rtl; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.surah-tile-name { margin-top: 17px; font: 500 25px/1.5 var(--font-ui); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.surah-tile-meaning { margin-top: 3px; font-size: 16px; line-height: 24px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.surah-tile-foot { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; line-height: 22.5px; color: var(--muted); }
+.surah-tile-foot svg { color: var(--accent); flex-shrink: 0; }
+
+.carousel-foot { position: relative; display: flex; align-items: center; justify-content: center; min-height: 21px; margin-top: 26px; }
+.carousel-hint { position: absolute; left: 0; font-size: 14px; line-height: 21px; color: var(--muted); }
+.carousel-dots { display: flex; gap: 12px; align-items: center; }
+.dot { width: 7px; height: 5px; border-radius: 3px; background: var(--line); transition: width 0.25s ease, background 0.25s ease; }
+.dot.on { width: 28px; background: var(--accent); }
+@media (max-width: 1199.98px) { .surah-track { --cols: 3; } }
+@media (max-width: 899.98px)  { .surah-track { --cols: 2; } }
+@media (max-width: 599.98px)  {
+  .surah-track { --cols: 1; gap: 14px; margin-right: calc(var(--gutter) * -1); padding-right: var(--gutter); }
+  .surah-tile, .surah-tile-skeleton { flex-basis: 78%; }
+  .carousel-hint { display: none; }
+  .section-head-actions { width: 100%; justify-content: space-between; padding-top: 4px; }
+}
+
+/* ── Explore Hadi (Figma, 1440x360) ────────────────────────────── */
+.explore-section { padding: 8px 0 48px; }
+.explore-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 27px; }
+.explore-card { display: flex; flex-direction: column; align-items: flex-start; min-height: 199px; padding: 23px 22px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; color: var(--text); text-align: left; cursor: pointer; transition: transform 0.18s cubic-bezier(.22,.61,.36,1), border-color 0.15s ease; }
+.explore-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+.explore-icon { color: var(--accent); }
+.explore-title { margin-top: 25px; font: 500 23px/1.5 var(--font-ui); }
+.explore-desc { margin-top: 9px; font-size: 16px; line-height: 24px; color: var(--muted); white-space: pre-line; }
+@media (max-width: 1099.98px) { .explore-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+@media (max-width: 599.98px) {
+  .explore-section { padding-bottom: 32px; }
+  .explore-grid { gap: 12px; margin-top: 20px; }
+  .explore-card { min-height: 0; padding: 18px 16px; }
+  .explore-title { margin-top: 16px; font-size: 18px; }
+  .explore-desc { font-size: 14px; line-height: 21px; }
+}
+
+/* ── Reading-journey invitation (Figma, 1248x218) ──────────────── */
+.journey-section { padding: 22px 0 44px; }
+.journey-invite { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "copy cta" "benefits cta"; column-gap: 32px; align-items: center; padding: 26px 32px 27px; background: var(--surface2); border-radius: 18px; }
+.journey-invite-copy { grid-area: copy; }
+.journey-invite-title { margin-top: 15px; font: 600 clamp(22px, 2vw + 8px, 29px)/1.5 var(--font-ui); color: var(--text); }
+.journey-invite-desc { margin-top: 10px; font-size: clamp(15px, 1.2vw + 3px, 18px); line-height: 1.5; color: var(--muted); }
+.journey-invite-cta { grid-area: cta; height: 54px; font-size: 18px; font-weight: 500; border-radius: 10px; padding: 0 20px; }
+.journey-benefits { grid-area: benefits; list-style: none; display: flex; flex-wrap: wrap; gap: 8px 26px; margin-top: 27px; }
+.journey-benefits li { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; line-height: 21px; color: var(--muted); }
+.journey-benefits svg { color: var(--accent); }
+@media (max-width: 859.98px) {
+  .journey-invite { grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "cta" "benefits"; row-gap: 20px; padding: 22px 20px; }
+  .journey-invite-cta { justify-self: start; }
+  .journey-benefits { margin-top: 0; }
+}
+@media (max-width: 479.98px) { .journey-invite-cta { justify-self: stretch; } }
+
+/* ── Footer (Figma, 1440x188) ──────────────────────────────────── */
+.site-footer { margin-top: 0; }
+.site-footer-inner { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+.footer-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin-top: 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+.footer-brand { display: flex; align-items: center; gap: 8px; }
+.footer-wordmark { font-size: 40px; }
+.footer-mission { font-size: 17px; color: var(--muted); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 32px; }
+.footer-links button { background: none; border: 0; padding: 0; font: 400 16px/24px var(--font-ui); color: var(--muted); cursor: pointer; }
+.footer-links button:hover { color: var(--accent); }
+.footer-bottom { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px 16px; padding: 28px 0 40px; font-size: 13px; color: var(--muted); }
+.footer-copy, .footer-license { font-family: 'Inter', var(--font-ui); font-size: 13px; line-height: 19.5px; }
+.footer-purpose { font-size: 15px; text-align: center; }
+.footer-license { justify-self: end; color: var(--muted); text-decoration: none; }
+.footer-license:hover { color: var(--accent); }
+@media (max-width: 767.98px) {
+  .footer-bottom { grid-template-columns: 1fr; text-align: center; justify-items: center; padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .footer-license { justify-self: center; }
+  .footer-top { justify-content: center; text-align: center; }
+  .footer-brand { flex-direction: column; gap: 0; }
+}
+
+/* ── Wipe overlay + orb (theme change animation) ───────────────── */
+.theme-orb { border-color: color-mix(in srgb, var(--text) 40%, transparent); }
+
+/* ── Inner pages: same surfaces, borders and radii as the Figma ── */
+.search-bar { background: var(--bg); border-color: var(--line); border-radius: 12px; }
+.search-bar:focus { border-color: var(--accent); }
+.chip { background: var(--surface2); border: 0; color: var(--accent); border-radius: 18px; }
+.chip.chip-full { color: var(--text); }
+.surah-card, .arabic-card, .tafsir-card, .search-ayah-row, .bookmark-row, .answer-card, .about-source-row { border-radius: 16px; }
+.surah-card, .search-ayah-row, .bookmark-row, .tafsir-card { background: var(--surface); border-color: var(--line); }
+.trans-card { background: var(--surface); border-color: var(--line); border-radius: 0 16px 16px 0; }
+.surah-card:hover, .search-ayah-row:hover { border-color: var(--accent); }
+.modal { background: var(--surface); border: 1px solid var(--line); }
+.tab { color: var(--muted); }
+.tab.active { color: var(--accent); }
+.about-text, .trans-text { color: var(--ink2); }
+@media (min-width: 768px) { .page-header { padding-top: 36px; } }
