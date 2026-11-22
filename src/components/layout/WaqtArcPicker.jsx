@@ -19,7 +19,7 @@ export default function WaqtArcPicker({ theme, themeList, onSelect, labelTheme }
       <defs>
         <linearGradient id="waqt-sky-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
           {themeList.map((t, i) => (
-            <stop key={t.key} offset={`${(i / (themeList.length - 1)) * 100}%`} stopColor={t["--gold"]} />
+            <stop key={t.key} offset={`${(i / (themeList.length - 1)) * 100}%`} stopColor={t["--accent"]} />
           ))}
         </linearGradient>
         <filter id="waqt-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -40,7 +40,7 @@ export default function WaqtArcPicker({ theme, themeList, onSelect, labelTheme }
       {/* gliding sun/moon marker */}
       <circle
         cx={markerPt.x} cy={markerPt.y} r="9"
-        fill={active["--gold2"]} filter="url(#waqt-glow)"
+        fill={active["--accent"]} filter="url(#waqt-glow)"
         style={{ transition: "cx 0.6s cubic-bezier(.22,.61,.36,1), cy 0.6s cubic-bezier(.22,.61,.36,1), fill 0.4s ease" }}
       />
 
@@ -55,15 +55,15 @@ export default function WaqtArcPicker({ theme, themeList, onSelect, labelTheme }
             <circle cx={p.x} cy={p.y} r="22" fill="transparent" />
             <circle
               cx={p.x} cy={p.y} r={isActive ? 11 : 7}
-              fill={t["--gold"]}
-              stroke={isActive ? t["--gold2"] : "none"}
+              fill={t["--accent"]}
+              stroke={isActive ? t["--text"] : "none"}
               strokeWidth={isActive ? 3 : 0}
               opacity={isActive ? 1 : 0.38}
               style={{ transition: "r 0.3s ease, opacity 0.3s ease" }}
             />
             <text x={p.x} y={p.y + (t.angle === 90 ? -20 : 22)} textAnchor="middle"
               fontSize="11" fontWeight={isActive ? 700 : 500}
-              fill={isActive ? t["--gold2"] : "currentColor"}
+              fill={isActive ? t["--accent"] : "currentColor"}
               opacity={isActive ? 1 : 0.55}
               style={{ transition: "opacity 0.3s ease, fill 0.3s ease" }}>
               {t.name}
