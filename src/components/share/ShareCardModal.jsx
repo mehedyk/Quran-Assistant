@@ -5,17 +5,18 @@ import { stripHtml } from "../../utils/constants.js";
 // Seven card templates: one per waqt palette (so a share card can echo
 // whichever time-of-day theme the person is reading in) plus the
 // brand's signature Emerald look and a high-drama "Poster" style.
+// The five waqt styles use the same palette as the app themes (Figma).
 // Deliberately no figures, faces, or iconography of any living thing —
 // every style is built from geometry, gradients, and type, in line
 // with how Islamic decorative art traditionally avoids figurative
 // imagery.
 const CARD_STYLES = [
   { key: "emerald", label: "Emerald",  bg1: "#0d2b1c", bg2: "#081a11", ink: "#f0e8d8", sub: "#a9c9b6", gold: "#d4af37", frame: "ornate" },
-  { key: "fajr",    label: "Fajr",     bg1: "#16213a", bg2: "#0f172a", ink: "#f1f5f9", sub: "#94a3b8", gold: "#38bdf8", frame: "ornate" },
-  { key: "dhuhr",   label: "Dhuhr",    bg1: "#fffbeb", bg2: "#fde8b8", ink: "#431407", sub: "#92400e", gold: "#c2410c", frame: "minimal" },
-  { key: "asr",     label: "Asr",      bg1: "#fff1de", bg2: "#fbcfa0", ink: "#431407", sub: "#9a3412", gold: "#ea580c", frame: "minimal" },
-  { key: "maghrib", label: "Maghrib",  bg1: "#3a2245", bg2: "#20131f", ink: "#fdf2f8", sub: "#e3b8d6", gold: "#fb923c", frame: "ornate" },
-  { key: "isha",    label: "Isha",     bg1: "#0a0f1f", bg2: "#020617", ink: "#f8fafc", sub: "#94a3b8", gold: "#d4af37", frame: "ornate" },
+  { key: "fajr",    label: "Fajr",     bg1: "#1e363f", bg2: "#101f26", ink: "#f1f0e7", sub: "#aabbb9", gold: "#b8dcca", onGold: "#102a26", frame: "ornate" },
+  { key: "dhuhr",   label: "Dhuhr",    bg1: "#ffffff", bg2: "#e8eee8", ink: "#1f3439", sub: "#5d7277", gold: "#2c697a", onGold: "#ffffff", frame: "minimal" },
+  { key: "asr",     label: "Asr",      bg1: "#fffaf1", bg2: "#f1e4cf", ink: "#473829", sub: "#7a6852", gold: "#885c37", onGold: "#fff9ef", frame: "minimal" },
+  { key: "maghrib", label: "Maghrib",  bg1: "#44304e", bg2: "#281d32", ink: "#fff0e9", sub: "#c7afc7", gold: "#eeb2ad", onGold: "#392233", frame: "ornate" },
+  { key: "isha",    label: "Isha",     bg1: "#232c46", bg2: "#101524", ink: "#eff0fb", sub: "#acb6d0", gold: "#bac6f0", onGold: "#171f39", frame: "ornate" },
   { key: "poster",  label: "Poster",   bg1: "#0b0b0d", bg2: "#000000", ink: "#f5f0e6", sub: "#c9a86a", gold: "#d4af37", frame: "poster" },
 ];
 
@@ -121,7 +122,7 @@ function draw(ctx, style, ayah) {
   ctx.beginPath();
   ctx.roundRect ? ctx.roundRect(bx, by, bw, bh, 23) : ctx.rect(bx, by, bw, bh);
   ctx.fill();
-  ctx.fillStyle = style.frame === "minimal" ? "#fff" : "#1a1209";
+  ctx.fillStyle = style.onGold || (style.frame === "minimal" ? "#fff" : "#1a1209");
   ctx.textAlign = "center";
   ctx.fillText(badge, W/2, by + bh/2 + 7);
 
