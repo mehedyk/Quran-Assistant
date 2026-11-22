@@ -3,7 +3,7 @@ import { Home, Search, BookOpen, HelpCircle, Compass, Sparkles, Bookmark, Librar
 import { useTheme } from "./hooks/useTheme.js";
 import { useAudioQueue } from "./hooks/useAudioQueue.js";
 import { useSidebar } from "./hooks/useSidebar.js";
-import { getAyahOfTheDay, stripHtml } from "./utils/constants.js";
+import { stripHtml } from "./utils/constants.js";
 import {
   fetchAyah, fetchSurahMeta, fetchSurahAyat,
   fetchAllSurahs, searchByWord, callAI, getAyahAudioUrl
@@ -13,29 +13,21 @@ import {
   getRecentSearches, addRecentSearch, isFirstVisit, recordActiveDay, recordVerseRead
 } from "./utils/storage.js";
 import ThemeOrb from "./components/layout/ThemeOrb.jsx";
+import SiteHeader from "./components/layout/SiteHeader.jsx";
+import PrayerThemeTabs from "./components/layout/PrayerThemeTabs.jsx";
+import SiteFooter from "./components/layout/SiteFooter.jsx";
+import HeroSection from "./components/home/HeroSection.jsx";
+import QuickLookup from "./components/home/QuickLookup.jsx";
+import DailyAyah from "./components/home/DailyAyah.jsx";
 import SurahCarousel from "./components/home/SurahCarousel.jsx";
+import ExploreSection from "./components/home/ExploreSection.jsx";
+import JourneyInvite from "./components/home/JourneyInvite.jsx";
+import DESIGN_CSS from "./styles/design.css?inline";
 import ReadMode from "./components/readmode/ReadMode.jsx";
 import NowPlayingBar from "./components/surah/NowPlayingBar.jsx";
 import JourneyPage from "./components/journey/JourneyPage.jsx";
 import ShareCardModal from "./components/share/ShareCardModal.jsx";
 import BookLibraryPage from "./components/readmode/BookLibraryPage.jsx";
-
-// ════════════════════════════════════════════════════════════════
-// BRAND LOGO — inline SVG so it inherits theme colors via currentColor
-// and needs no extra network request. Matches /public/logo.svg.
-// ════════════════════════════════════════════════════════════════
-function Logo({ size = 34, className = "" }) {
-  return (
-    <svg className={`brand-logo ${className}`} width={size} height={size} viewBox="0 0 100 100" aria-hidden>
-      <circle cx="50" cy="50" r="48" fill="var(--green)" />
-      <path d="M50 40 C42 34 30 32 22 34 L22 66 C30 64 42 66 50 72 C58 66 70 64 78 66 L78 34 C70 32 58 34 50 40 Z"
-        fill="none" stroke="var(--gold2)" strokeWidth="2.4" strokeLinejoin="round" />
-      <line x1="50" y1="40" x2="50" y2="72" stroke="var(--gold2)" strokeWidth="2.2" />
-      <path d="M63 22 A13 13 0 1 0 63 46 A10.5 10.5 0 1 1 63 22 Z" fill="var(--gold2)" className="brand-logo-crescent" />
-      <path d="M40 20 L41.6 24.6 L46.4 24.6 L42.6 27.6 L44 32.2 L40 29.4 L36 32.2 L37.4 27.6 L33.6 24.6 L38.4 24.6 Z" fill="var(--gold2)" className="brand-logo-star" />
-    </svg>
-  );
-}
 
 // ════════════════════════════════════════════════════════════════
 // LANGUAGE CONTEXT
@@ -131,6 +123,50 @@ const T = {
     bnTrans:        "🇧🇩 বাংলা অনুবাদ — মুহিউদ্দীন খান",
     enTrans:        "🇬🇧 English — Dr. Mustafa Khattab",
     noAI:           "AI ব্যাখ্যা নেই",
+    // ── Redesign (Figma "Al Hadi remake") ─────────────────────────
+    brandDescriptor:"কুরআন রেফারেন্স",
+    openMenu:       "মেনু খুলুন",
+    closeMenu:      "মেনু বন্ধ করুন",
+    langToggle:     "ভাষা পরিবর্তন",
+    themeBarLabel:  "দিনের সাথে রঙ বদলাক",
+    themeSelectorAria:"নামাজের সময় অনুযায়ী থিম",
+    heroTitle:      ["প্রতিদিন একটু সময়,", "কুরআনের আলোয়।"],
+    heroDesc:       ["আয়াত পড়ুন, অর্থ জানুন, তাফসীরে গভীরে যান।", "কুরআনের সাথে আপনার প্রতিদিনের পথচলা শুরু হোক এখানে।"],
+    heroStart:      "পড়া শুরু করুন",
+    heroBrowse:     "সূরা আবিষ্কার করুন",
+    heroNote:       "১১৪টি সূরা  ·  বাংলা অনুবাদ  ·  বিশ্বস্ত তাফসীর",
+    archCaption:    "পড়ুন · বুঝুন · জীবনে গড়ুন",
+    archEnglish:    "A LIGHT FOR EVERY HEART",
+    lookupTitle:    "কোন আয়াতটি খুঁজছেন?",
+    lookupHint:     "আয়াতের রেফারেন্স, সূরা অথবা একটি শব্দ",
+    lookupPlaceholder:"আয়াত লিখুন (২:২৫৫) বা শব্দ দিয়ে খুঁজুন...",
+    lookupSubmit:   "খুঁজুন",
+    quickFind:      "দ্রুত খুঁজুন",
+    ayahEyebrow:    "আলোর একটি আয়াত",
+    ayahVerified:   "আরবি পাঠ ও বাংলা অর্থ একসাথে",
+    reciteShort:    "তিলাওয়াত",
+    stopShort:      "বন্ধ করুন",
+    saveShort:      "সংরক্ষণ",
+    savedShort:     "সংরক্ষিত",
+    ayahDetails:    "তাফসীর ও বিস্তারিত",
+    discoverSub:    "পরিচিত সূরা থেকে শুরু হোক নতুন করে জানা।",
+    allSurahs:      "সকল ১১৪টি সূরা",
+    swipeHint:      "সোয়াইপ করে আরও সূরা দেখুন",
+    prevSurahs:     "আগের সূরাগুলো",
+    nextSurahs:     "পরের সূরাগুলো",
+    ayatUnit:       "আয়াত",
+    exploreTitle:   "আপনার পথ, আপনার মতো",
+    exploreSub:     "কুরআনের সাথে যুক্ত থাকার সবকিছু, এক জায়গায়।",
+    exploreSearchDesc:"সবর, রহমত, mercy…\nএকটি শব্দ থেকে খুঁজুন আয়াত।",
+    exploreReadDesc:"বইয়ের মতো পড়ুন,\nতিলাওয়াত শুনুন মন দিয়ে।",
+    exploreSavedDesc:"প্রিয় আয়াতগুলো রাখুন\nআবার ফিরে আসার জন্য।",
+    exploreAskDesc: "কী, কখন, কোনটি, কে—\nজানুন তথ্যভিত্তিক উত্তর।",
+    journeyEyebrow: "অল্প অল্প করে, প্রতিদিন",
+    journeyHeadline:"আপনার আধ্যাত্মিক যাত্রা আলোর পথ।",
+    journeyDesc:    "পড়ার অভ্যাস গড়ুন, অগ্রগতি দেখুন, ফিরে আসুন আপনার প্রিয় আয়াতে।",
+    journeyCta:     "আমার যাত্রা দেখুন",
+    footerMission:  "কুরআনের কাছে, প্রতিদিন।",
+    footerPurpose:  "সৎ উদ্দেশ্যে বিনামূল্যে ব্যবহারযোগ্য",
     howTo: [
       { icon:"📖", title:"আয়াত দেখুন",     desc:"হোম পেজে সূরা:আয়াত নম্বর লিখুন। যেমন: ২:২৫৫" },
       { icon:"🔍", title:"শব্দ অনুসন্ধান",  desc:"বাংলা বা ইংরেজি শব্দ লিখুন — সবর, রহমত, patience..." },
@@ -224,6 +260,50 @@ const T = {
     bnTrans:        "🇧🇩 Bengali — Muhiuddin Khan",
     enTrans:        "🇬🇧 English — Dr. Mustafa Khattab",
     noAI:           "NO AI INTERPRETATION",
+    // ── Redesign (Figma "Al Hadi remake") ─────────────────────────
+    brandDescriptor:"Quran Reference",
+    openMenu:       "Open menu",
+    closeMenu:      "Close menu",
+    langToggle:     "Switch language",
+    themeBarLabel:  "Let the colors follow the day",
+    themeSelectorAria:"Prayer-time theme",
+    heroTitle:      ["A little time each day,", "in the light of the Quran."],
+    heroDesc:       ["Read verses, learn their meaning, go deeper with tafsir.", "Begin your daily walk with the Quran right here."],
+    heroStart:      "Start reading",
+    heroBrowse:     "Discover surahs",
+    heroNote:       "114 surahs  ·  Bengali translation  ·  Trusted tafsir",
+    archCaption:    "Read · Understand · Live it",
+    archEnglish:    "A LIGHT FOR EVERY HEART",
+    lookupTitle:    "Which verse are you looking for?",
+    lookupHint:     "A verse reference, a surah, or a single word",
+    lookupPlaceholder:"Enter a verse (2:255) or search by a word...",
+    lookupSubmit:   "Search",
+    quickFind:      "Quick find",
+    ayahEyebrow:    "A verse of light",
+    ayahVerified:   "Arabic text and Bengali meaning, together",
+    reciteShort:    "Recite",
+    stopShort:      "Stop",
+    saveShort:      "Save",
+    savedShort:     "Saved",
+    ayahDetails:    "Tafsir & details",
+    discoverSub:    "Start anew from the surahs you already know.",
+    allSurahs:      "All 114 surahs",
+    swipeHint:      "Swipe to see more surahs",
+    prevSurahs:     "Previous surahs",
+    nextSurahs:     "Next surahs",
+    ayatUnit:       "verses",
+    exploreTitle:   "Your path, your way",
+    exploreSub:     "Everything for staying connected with the Quran, in one place.",
+    exploreSearchDesc:"Sabr, mercy, rahma…\nFind verses from a single word.",
+    exploreReadDesc:"Read it like a book,\nand listen to the recitation.",
+    exploreSavedDesc:"Keep your favourite verses\nto return to again.",
+    exploreAskDesc: "What, when, which, who —\nget fact-based answers.",
+    journeyEyebrow: "A little at a time, every day",
+    journeyHeadline:"Your spiritual journey is a path of light.",
+    journeyDesc:    "Build a reading habit, watch your progress, and return to the verses you love.",
+    journeyCta:     "View my journey",
+    footerMission:  "Close to the Quran, every day.",
+    footerPurpose:  "Free to use with good intention",
     howTo: [
       { icon:"📖", title:"Verse Lookup",    desc:"Type a reference like 2:255 on the home screen." },
       { icon:"🔍", title:"Word Search",     desc:"Type any word — sabr, mercy, patience..." },
@@ -273,99 +353,61 @@ export default function App() {
     { id: "about",         icon: Sparkles,   label: t.about },
   ];
 
+  // Sub-pages light up the nav item they belong to.
+  const activeNav =
+    page === "surah"    ? "surah-browser" :
+    page === "readmode" ? (pageData?._origin === "book" ? "book" : "surah-browser") :
+    page;
+
   return (
     <LangContext.Provider value={lang}>
       <style>{BASE_CSS}</style>
+      <style>{DESIGN_CSS}</style>
       {showHowTo && <HowToModal t={t} onClose={() => setShowHowTo(false)} />}
       {shareTarget && <ShareCardModal t={t} ayah={shareTarget} onClose={() => setShareTarget(null)} />}
 
-      {/* Persistent, on every screen, corner theme control */}
+      {/* Phones: persistent corner theme control (tap = waqt arc, hold = next waqt).
+          Tablet/desktop use the Figma prayer-theme tabs below the header. */}
       <ThemeOrb theme={theme} themeMeta={themeMeta} themeList={themeList}
-        selectTheme={selectTheme} cycleTheme={cycleTheme} label={t.theme} />
+        selectTheme={selectTheme} label={t.theme} />
 
-      <div className={`app ${sidebar.collapsed ? "sidebar-collapsed" : ""}`}>
-        {/* Mobile overlay scrim behind the drawer */}
-        {sidebar.mobileOpen && <div className="sidebar-scrim" onClick={sidebar.closeMobile} />}
+      <div className="app">
+        <SiteHeader
+          t={t} lang={lang} items={NAV_ITEMS} activeId={activeNav}
+          navigate={navigate} onToggleLang={toggleLang} onHowTo={() => setShowHowTo(true)}
+          drawerOpen={sidebar.mobileOpen}
+          onToggleDrawer={sidebar.toggleMobile}
+          onCloseDrawer={sidebar.closeMobile}
+        />
+        <PrayerThemeTabs t={t} lang={lang} theme={theme} themeList={themeList} selectTheme={selectTheme} />
 
-        {/* SIDEBAR — desktop rail (collapsible) + mobile drawer */}
-        <aside className={`sidebar ${sidebar.mobileOpen ? "sidebar-mobile-open" : ""}`}>
-          <div className="sidebar-brand">
-            <button className="sidebar-logo-btn" onClick={() => navigate("home")}>
-              <Logo size={38} />
-              <span className="sidebar-logo">هادي</span>
+        <main className="main">
+          {page === "home"          && <HomePage t={t} lang={lang} navigate={navigate} audio={audio} theme={theme} themeMeta={themeMeta} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
+          {page === "search"        && <SearchPage t={t} navigate={navigate} data={pageData} />}
+          {page === "surah-browser" && <SurahBrowserPage t={t} navigate={navigate} />}
+          {page === "book"          && <BookLibraryPage t={t} navigate={navigate} />}
+          {page === "ayah"          && <AyahPage t={t} data={pageData} audio={audio} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
+          {page === "surah"         && <SurahPage t={t} data={pageData} navigate={navigate} audio={audio} />}
+          {page === "readmode"      && <ReadMode t={t} data={pageData} audio={audio} onClose={() => navigate(pageData?._origin === "book" ? "book" : "surah", pageData)} />}
+          {page === "bookmarks"     && <BookmarksPage key={bookmarkTick} t={t} navigate={navigate} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
+          {page === "journey"       && <JourneyPage t={t} navigate={navigate} tick={bookmarkTick} onShare={setShareTarget} />}
+          {page === "ask"           && <AskPage t={t} lang={lang} />}
+          {page === "about"         && <AboutPage t={t} lang={lang} />}
+        </main>
+
+        <NowPlayingBar t={t} audio={audio} />
+
+        {/* BOTTOM TAB BAR — phones */}
+        <div className="tab-bar">
+          {NAV_ITEMS.map(item => (
+            <button key={item.id} className={`tab ${activeNav === item.id ? "active" : ""}`} onClick={() => navigate(item.id)}>
+              <span className="tab-icon"><item.icon size={20} /></span>
+              <span className="tab-label">{item.label}</span>
             </button>
-            <div className="sidebar-tagline">{t.appTagline}</div>
-          </div>
-          <nav className="sidebar-nav">
-            {NAV_ITEMS.map(item => (
-              <button key={item.id} className={`sidebar-link ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)} title={item.label}>
-                <span className="sidebar-link-icon"><item.icon size={18} /></span>
-                <span className="sidebar-link-text">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="sidebar-footer">
-            <button className="sidebar-ctrl" onClick={() => setShowHowTo(true)}>? <span className="sidebar-ctrl-text">{t.howToUse}</span></button>
-            <button className="sidebar-ctrl" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"} <span className="sidebar-ctrl-text">Language</span></button>
-          </div>
-        </aside>
-
-        {/* CONTENT */}
-        <div className="content-wrap">
-          {/* TOP NAV */}
-          <nav className="topnav">
-            <button
-              className={`hamburger ${sidebar.mobileOpen ? "hamburger-open" : ""}`}
-              onClick={() => { sidebar.toggleMobile(); sidebar.toggle(); }}
-              aria-label={sidebar.collapsed ? t.expandSidebar : t.collapseSidebar}
-              aria-expanded={!sidebar.collapsed}
-            >
-              <span /><span /><span />
-            </button>
-            <button className="topnav-logo-btn" onClick={() => navigate("home")}>
-              <Logo size={30} />
-              <span className="topnav-logo">هادي</span>
-            </button>
-            <div className="topnav-actions">
-              <button className="nav-btn" onClick={() => setShowHowTo(true)}>?</button>
-              <button className="nav-btn lang-nav-btn" onClick={toggleLang}>{lang === "bn" ? "EN" : "বাং"}</button>
-            </div>
-          </nav>
-
-          <main className="main">
-            {page === "home"          && <HomePage t={t} navigate={navigate} audio={audio} />}
-            {page === "search"        && <SearchPage t={t} navigate={navigate} />}
-            {page === "surah-browser" && <SurahBrowserPage t={t} navigate={navigate} />}
-            {page === "book"          && <BookLibraryPage t={t} navigate={navigate} />}
-            {page === "ayah"          && <AyahPage t={t} data={pageData} audio={audio} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
-            {page === "surah"         && <SurahPage t={t} data={pageData} navigate={navigate} audio={audio} />}
-            {page === "readmode"      && <ReadMode t={t} data={pageData} audio={audio} onClose={() => navigate(pageData?._origin === "book" ? "book" : "surah", pageData)} />}
-            {page === "bookmarks"     && <BookmarksPage key={bookmarkTick} t={t} navigate={navigate} onBookmarkChange={() => setBookmarkTick(x=>x+1)} />}
-            {page === "journey"       && <JourneyPage t={t} navigate={navigate} tick={bookmarkTick} onShare={setShareTarget} />}
-            {page === "ask"           && <AskPage t={t} lang={lang} />}
-            {page === "about"         && <AboutPage t={t} lang={lang} />}
-          </main>
-
-          <NowPlayingBar t={t} audio={audio} />
-
-          {/* BOTTOM TAB BAR — mobile */}
-          <div className="tab-bar">
-            {NAV_ITEMS.map(item => (
-              <button key={item.id} className={`tab ${page === item.id ? "active" : ""}`} onClick={() => navigate(item.id)}>
-                <span className="tab-icon"><item.icon size={20} /></span>
-                <span className="tab-label">{item.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <footer className="footer">
-            <span>© {new Date().getFullYear()} Hadi Quran Reference</span>
-            <span className="footer-sep">·</span>
-            <span>{lang === "bn" ? "সৎ উদ্দেশ্যে বিনামূল্যে ব্যবহারযোগ্য" : "Free to use with good intention"}</span>
-            <span className="footer-sep">·</span>
-            <a href="https://github.com/mehedyk/hadi-quran" target="_blank" rel="noopener noreferrer">MIT License</a>
-          </footer>
+          ))}
         </div>
+
+        <SiteFooter t={t} navigate={navigate} onHowTo={() => setShowHowTo(true)} />
       </div>
     </LangContext.Provider>
   );
@@ -374,90 +416,15 @@ export default function App() {
 // ════════════════════════════════════════════════════════════════
 // HOME PAGE
 // ════════════════════════════════════════════════════════════════
-function HomePage({ t, navigate, audio }) {
-  const [aotd, setAotd]       = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [input, setInput]     = useState("");
-
-  useEffect(() => {
-    const { surah, ayah } = getAyahOfTheDay();
-    fetchAyah(surah, ayah)
-      .then(d => { setAotd(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
-
-  function handleQuickLookup() {
-    const v = input.trim();
-    if (!v) return;
-    const m = v.match(/^(\d{1,3}):(\d{1,3})$/);
-    if (m) {
-      fetchAyah(parseInt(m[1]), parseInt(m[2]))
-        .then(d => navigate("ayah", d))
-        .catch(() => alert(t.loadFailed));
-    } else {
-      navigate("search", { initialQuery: v });
-    }
-    setInput("");
-  }
-
+function HomePage({ t, lang, navigate, audio, theme, themeMeta, onBookmarkChange }) {
   return (
     <div className="page home-page">
-      <div className="hero">
-        <div className="hero-pattern" aria-hidden />
-        <div className="bismillah-hero">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
-        <h1 className="hero-title">هادي</h1>
-        <p className="hero-sub">{t.appTagline}</p>
-      </div>
-
-      <div className="section">
-        <div className="section-label">{t.quickLookup}</div>
-        <div className="quick-lookup">
-          <input className="quick-input" value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleQuickLookup()}
-            placeholder={t.quickPlaceholder} />
-          <button className="quick-btn" onClick={handleQuickLookup}>→</button>
-        </div>
-        <div className="chip-row">
-          {["2:255","1:1","112:1","36:1"].map(c => (
-            <button key={c} className="chip"
-              onClick={() => fetchAyah(...c.split(":").map(Number)).then(d => navigate("ayah", d))}>
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="section-title">
-          <span className="section-title-ar">{t.todayAyahAr}</span>
-          <span>{t.todayAyah}</span>
-        </div>
-        {loading
-          ? <div className="skeleton" style={{height:160}} />
-          : aotd
-            ? <AyahCard t={t} ayah={aotd} audio={audio} onTap={() => navigate("ayah", aotd)} />
-            : null}
-      </div>
-
-      <SurahCarousel t={t} navigate={navigate} />
-
-      <div className="section">
-        <div className="nav-cards">
-          {[
-            { id:"search",        icon:"🔍", title:t.wordSearch,  sub:"সবর, রহমত, mercy..." },
-            { id:"surah-browser", icon:"📖", title:t.surahBrowse, sub:t.surahBrowseSub },
-            { id:"bookmarks",     icon:"🔖", title:t.savedAyat,   sub:t.saved },
-            { id:"ask",           icon:"❓", title:t.askTitle,    sub:t.askSub },
-          ].map(c => (
-            <button key={c.id} className="nav-card" onClick={() => navigate(c.id)}>
-              <span className="nav-card-icon">{c.icon}</span>
-              <span className="nav-card-title">{c.title}</span>
-              <span className="nav-card-sub">{c.sub}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      <HeroSection t={t} lang={lang} navigate={navigate} theme={theme} themeMeta={themeMeta} />
+      <QuickLookup t={t} lang={lang} navigate={navigate} />
+      <DailyAyah t={t} lang={lang} navigate={navigate} audio={audio} onBookmarkChange={onBookmarkChange} />
+      <SurahCarousel t={t} lang={lang} navigate={navigate} />
+      <ExploreSection t={t} navigate={navigate} />
+      <JourneyInvite t={t} navigate={navigate} />
     </div>
   );
 }
@@ -465,8 +432,9 @@ function HomePage({ t, navigate, audio }) {
 // ════════════════════════════════════════════════════════════════
 // SEARCH PAGE
 // ════════════════════════════════════════════════════════════════
-function SearchPage({ t, navigate }) {
-  const [query, setQuery]     = useState("");
+function SearchPage({ t, navigate, data }) {
+  const initialQuery          = data?.initialQuery || "";
+  const [query, setQuery]     = useState(initialQuery);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -480,6 +448,9 @@ function SearchPage({ t, navigate }) {
     catch { setError(t.searchFailed); }
     finally { setLoading(false); }
   }
+
+  // Arriving from the Home quick lookup with a word: run it straight away.
+  useEffect(() => { if (initialQuery) doSearch(initialQuery); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="page">
@@ -1004,27 +975,6 @@ function AboutPage({ t, lang }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// REUSABLE AYAH CARD
-// ════════════════════════════════════════════════════════════════
-function AyahCard({ t, ayah, audio, onTap }) {
-  const isPlaying = audio.playingUrl === ayah.audioUrl;
-  return (
-    <div className="ayah-card" onClick={onTap}>
-      <div className="ayah-card-badge">{ayah.key} — {ayah.surahName}</div>
-      <div className="ayah-card-ar">{ayah.arabic}</div>
-      <div className="ayah-card-bn bangla">{stripHtml(ayah.bengali || "")}</div>
-      <div className="ayah-card-actions" onClick={e => e.stopPropagation()}>
-        <button className={`action-btn-sm ${isPlaying ? "active" : ""}`}
-          onClick={() => audio.play(ayah.audioUrl)}>
-          {isPlaying ? t.stop : t.recite}
-        </button>
-        <span className="ayah-card-tap">{t.detail}</span>
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
 // HOW TO MODAL
 // ════════════════════════════════════════════════════════════════
 function HowToModal({ t, onClose }) {
@@ -1055,65 +1005,32 @@ function HowToModal({ t, onClose }) {
 // ════════════════════════════════════════════════════════════════
 const BASE_CSS = `
   @font-face { font-family:'UthmanNaskh'; src:url('/fonts/UthmanTN1.woff2') format('woff2'); font-display:swap; }
-  @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700&display=swap');
 
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
   :root{
-    /* Minimal pre-hydration fallback only (matches the Dhuhr default) —
-       useTheme.js sets the real values for the active waqt at runtime. */
-    --bg:#fffbeb;--bg2:#fef3c7;--bg3:#ffffff;
-    --ink:#78350f;--ink2:#92400e;--ink3:#b45309;
-    --gold:#f59e0b;--gold2:#fbbf24;--green:#92400e;--green2:#b45309;
-    --border:rgba(146,64,14,0.18);--shadow:rgba(120,53,15,0.10);
-    --warn:#b91c1c;--warn-bg:#fff1e6;--pattern:rgba(245,158,11,0.05);
+    /* Pre-hydration fallback only (the default Dhuhr palette) — useTheme.js
+       sets the real values for the active waqt at runtime. */
+    --bg:#f6f8f4;--surface:#ffffff;--surface2:#e8eee8;--line:#d5dfd9;
+    --text:#1f3439;--muted:#5d7277;--accent:#2c697a;--on-accent:#ffffff;--accent-hover:#3f7686;
+    --ornament:#796234;--danger:#b3261e;--danger-bg:rgba(179,38,30,0.10);
+    --bg2:#e8eee8;--bg3:#ffffff;--ink:#1f3439;--ink2:#3d5258;--ink3:#5d7277;
+    --gold:#2c697a;--gold2:#2c697a;--green:#2c697a;--green2:#3f7686;--fill:#2c697a;
+    --border:#d5dfd9;--shadow:rgba(31,52,57,0.10);
+    --warn:#b91c1c;--warn-bg:rgba(185,28,28,0.09);--pattern:rgba(44,105,122,0.06);
   }
 
   html{font-size:16px;scroll-behavior:smooth;overflow-x:hidden;}
   body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-wrap:break-word;}
 
   .app{display:flex;min-height:100vh;min-height:100dvh;max-width:100vw;min-width:0;}
-  .sidebar{display:none;flex-direction:column;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;}
-  .sidebar-brand{padding:28px 20px 20px;border-bottom:1px solid var(--border);}
-  .sidebar-logo-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:0;}
-  .sidebar-logo{font-family:'UthmanNaskh',serif;font-size:2rem;color:var(--gold2);line-height:1;}
-  .sidebar-tagline{font-size:0.68rem;color:var(--ink);opacity:0.55;margin-top:4px;}
-  .sidebar-nav{flex:1;padding:16px 0;}
-  .sidebar-link{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;cursor:pointer;color:var(--ink);opacity:0.65;font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;text-align:left;transition:all 0.15s;}
-  .sidebar-link:hover{opacity:1;background:rgba(255,255,255,0.05);}
-  .sidebar-link.active{opacity:1;background:rgba(255,255,255,0.1);color:var(--gold2);font-weight:600;border-left:3px solid var(--gold2);}
-  .sidebar-link-icon{width:20px;display:inline-flex;align-items:center;justify-content:center;}
-  .sidebar-footer{padding:12px 0 20px;border-top:1px solid var(--border);}
-  .sidebar-ctrl{display:flex;align-items:center;gap:8px;width:100%;padding:9px 20px;background:none;border:none;cursor:pointer;color:var(--ink);opacity:0.5;font-family:'Hind Siliguri',sans-serif;font-size:0.78rem;text-align:left;transition:opacity 0.15s;}
-  .sidebar-ctrl:hover{opacity:0.85;}
 
   @media(min-width:768px){
-    .sidebar{display:flex;width:240px;min-height:100vh;position:sticky;top:0;height:100vh;flex-shrink:0;}
-    .topnav{display:none!important;}
+
     .tab-bar{display:none!important;}
-    .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-y:auto;}
-    .main{flex:1;}
-    .page{max-width:780px;margin:0 auto;}
-    .surah-grid{grid-template-columns:repeat(3,1fr)!important;}
-    .nav-cards{grid-template-columns:repeat(4,1fr)!important;}
-    .hero{border-radius:0 0 16px 16px;}
-  }
-  @media(min-width:1100px){
-    .sidebar{width:260px;}
-    .page{max-width:860px;}
-    .surah-grid{grid-template-columns:repeat(4,1fr)!important;}
+
   }
 
-  .content-wrap{flex:1;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;min-width:0;max-width:100%;}
-  .topnav{height:52px;display:flex;align-items:center;gap:10px;padding:0 12px 0 8px;background:var(--fill);position:sticky;top:0;z-index:100;}
-  .topnav-actions{margin-left:auto;}
-  .topnav-logo-btn{display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;}
-  .topnav-logo{font-family:'UthmanNaskh',serif;font-size:1.4rem;color:var(--gold2);}
-  .topnav-actions{display:flex;gap:6px;}
-  .nav-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:white;font-size:0.9rem;cursor:pointer;display:grid;place-items:center;transition:background 0.15s;}
-  .nav-btn:hover{background:rgba(255,255,255,0.16);}
-  .main{flex:1;min-width:0;max-width:100%;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
-  @media(min-width:768px){.main{padding-bottom:0;}}
   .tab-bar{height:60px;display:flex;background:var(--bg3);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
   .tab{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;cursor:pointer;color:var(--ink3);transition:color 0.15s;padding:5px 2px;}
   .tab.active{color:var(--green);}
@@ -1124,66 +1041,34 @@ const BASE_CSS = `
     .tab-label{font-size:0.5rem;}
   }
   .tab.active .tab-label{font-weight:700;}
-  .footer{padding:14px 20px;font-size:0.68rem;color:var(--ink3);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-  .footer a{color:var(--ink3);text-decoration:none;}
-  .footer a:hover{color:var(--gold);}
-  .footer-sep{opacity:0.4;}
 
-  .page{padding-bottom:24px;min-width:0;max-width:100%;overflow-x:hidden;}
   .page-header{padding:20px 18px 10px;}
-  .page-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--green);font-style:italic;}
+  .page-title{font-family:'Hind Siliguri',sans-serif;font-size:1.9rem;font-weight:600;color:var(--text);line-height:1.35;}
   .page-sub{font-size:0.78rem;color:var(--ink3);margin-top:3px;}
   .section{padding:10px 18px;}
   .section-title{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:0.85rem;font-weight:600;color:var(--ink2);}
   .section-title-ar{font-family:'UthmanNaskh',serif;font-size:1rem;color:var(--gold);}
   .section-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink3);margin-bottom:8px;}
 
-  .hero{background:var(--fill);padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden;}
-  .hero-pattern{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,var(--pattern) 0,var(--pattern) 1px,transparent 0,transparent 50%);background-size:18px 18px;pointer-events:none;}
-  .bismillah-hero{font-family:'UthmanNaskh',serif;font-size:1.3rem;color:color-mix(in srgb, var(--gold) 85%, transparent);direction:rtl;margin-bottom:8px;line-height:2;position:relative;}
-  .hero-title{font-family:'UthmanNaskh',serif;font-size:3rem;color:var(--gold2);letter-spacing:0.05em;line-height:1;position:relative;}
-  .hero-sub{font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:5px;position:relative;}
-
-  .quick-lookup{display:flex;gap:8px;margin-bottom:10px;}
-  .quick-input{flex:1;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);outline:none;transition:border-color 0.18s;}
-  .quick-input:focus{border-color:var(--gold);}
-  .quick-btn{width:44px;background:var(--fill);color:white;border:none;border-radius:10px;font-size:1.2rem;cursor:pointer;flex-shrink:0;transition:background 0.15s;}
-  .quick-btn:hover{background:var(--green2);}
-
   .chip{font-family:'Hind Siliguri',sans-serif;font-size:0.76rem;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all 0.14s;white-space:nowrap;}
-  .chip:hover{background:var(--gold);color:white;border-color:var(--gold);}
+  .chip:hover{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
   .chip-row{display:flex;flex-wrap:wrap;gap:6px;}
   .chip-col{display:flex;flex-direction:column;gap:6px;}
   .chip-full{width:100%;text-align:left;border-radius:10px;padding:8px 14px;}
 
-  .nav-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .nav-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;transition:all 0.15s;box-shadow:0 1px 6px var(--shadow);}
-  .nav-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 16px var(--shadow);}
-  .nav-card-icon{font-size:1.3rem;}
-  .nav-card-title{font-size:0.82rem;font-weight:600;color:var(--green);}
-  .nav-card-sub{font-size:0.68rem;color:var(--ink3);}
-
-  .ayah-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;box-shadow:0 2px 10px var(--shadow);transition:box-shadow 0.15s;}
-  .ayah-card:hover{box-shadow:0 4px 20px var(--shadow);}
-  .ayah-card-badge{font-size:0.65rem;font-weight:700;color:var(--gold);margin-bottom:10px;font-family:monospace;letter-spacing:0.04em;}
-  .ayah-card-ar{font-family:'UthmanNaskh',serif;font-size:1.55rem;line-height:2.3;direction:rtl;text-align:right;color:var(--ink);margin-bottom:10px;}
-  .ayah-card-bn{font-size:0.85rem;line-height:1.78;color:var(--ink2);margin-bottom:10px;}
-  .ayah-card-actions{display:flex;justify-content:space-between;align-items:center;}
-  .ayah-card-tap{font-size:0.7rem;color:var(--gold);}
-
   .ayah-surah-badge{display:flex;align-items:center;gap:8px;padding:16px 18px 8px;flex-wrap:wrap;}
-  .ayah-surah-ar{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--green);}
+  .ayah-surah-ar{font-family:'Hind Siliguri',sans-serif;font-size:1rem;font-weight:700;color:var(--green);}
   .ayah-surah-bn{font-size:0.78rem;color:var(--ink3);}
-  .ayah-key-badge{font-family:monospace;font-size:0.65rem;background:var(--gold);color:white;padding:2px 9px;border-radius:10px;margin-left:auto;letter-spacing:0.04em;}
+  .ayah-key-badge{font-family:monospace;font-size:0.65rem;background:var(--accent);color:var(--on-accent);padding:2px 9px;border-radius:10px;margin-left:auto;letter-spacing:0.04em;}
   .arabic-card{margin:0 18px 12px;background:linear-gradient(135deg,color-mix(in srgb, var(--green) 7%, transparent),color-mix(in srgb, var(--gold) 7%, transparent));border:1px solid var(--border);border-radius:12px;padding:18px;}
   .arabic-text{font-family:'UthmanNaskh',serif;font-size:2rem;line-height:2.7;direction:rtl;text-align:right;color:var(--ink);margin-bottom:14px;}
   .arabic-actions{display:flex;gap:6px;flex-wrap:wrap;}
   .action-btn{font-family:'Hind Siliguri',sans-serif;font-size:0.72rem;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all 0.14s;white-space:nowrap;}
   .action-btn:hover{border-color:var(--gold);color:var(--gold);}
-  .action-btn.active{background:var(--fill);color:white;border-color:var(--fill);}
-  .action-btn.gold{background:var(--gold);color:white;border-color:var(--gold);}
+  .action-btn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
+  .action-btn.gold{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
   .action-btn-sm{font-family:'Hind Siliguri',sans-serif;font-size:0.7rem;padding:4px 10px;border-radius:16px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all 0.14s;}
-  .action-btn-sm.active{background:var(--fill);color:white;border-color:var(--fill);}
+  .action-btn-sm.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
   .trans-card{margin:0 18px 10px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green2);border-radius:0 12px 12px 0;padding:12px 14px;}
   .trans-lang{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gold);margin-bottom:6px;}
   .trans-text{font-size:0.88rem;line-height:1.82;color:var(--ink2);}
@@ -1201,8 +1086,8 @@ const BASE_CSS = `
   .search-bar-wrap{display:flex;gap:8px;padding:0 18px 12px;}
   .search-bar{flex:1;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--ink);outline:none;transition:border-color 0.18s;}
   .search-bar:focus{border-color:var(--gold);}
-  .search-go{font-family:'Hind Siliguri',sans-serif;font-size:0.8rem;font-weight:600;padding:0 16px;background:var(--fill);color:white;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
-  .search-go:hover{background:var(--green2);}
+  .search-go{font-family:'Hind Siliguri',sans-serif;font-size:0.8rem;font-weight:600;padding:0 16px;background:var(--accent);color:var(--on-accent);border:none;border-radius:12px;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
+  .search-go:hover{background:var(--accent-hover);}
   .search-go:disabled{opacity:0.5;cursor:not-allowed;}
   .results-meta{font-size:0.82rem;color:var(--ink2);margin-bottom:12px;line-height:1.6;}
   .tag-sm{font-family:monospace;background:color-mix(in srgb, var(--gold) 10%, transparent);padding:1px 5px;border-radius:3px;font-size:0.78rem;}
@@ -1216,19 +1101,18 @@ const BASE_CSS = `
   .search-ayah-ar{font-family:'UthmanNaskh',serif;font-size:1.25rem;line-height:2.1;direction:rtl;text-align:right;color:var(--ink);margin-bottom:4px;}
   .search-ayah-en{font-size:0.76rem;color:var(--ink3);font-style:italic;line-height:1.55;}
 
-  .surah-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px;}
   .surah-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all 0.15s;}
   .surah-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 14px var(--shadow);}
   .surah-num{font-family:monospace;font-size:0.62rem;color:var(--gold);margin-bottom:4px;letter-spacing:0.04em;}
   .surah-ar{font-family:'UthmanNaskh',serif;font-size:1.2rem;color:var(--green);direction:rtl;margin-bottom:3px;}
-  .surah-en{font-family:'Playfair Display',serif;font-size:0.75rem;font-weight:500;color:var(--ink2);}
+  .surah-en{font-family:'Hind Siliguri',sans-serif;font-size:0.75rem;font-weight:500;color:var(--ink2);}
   .surah-bn{font-size:0.7rem;color:var(--ink3);margin-bottom:5px;}
   .surah-meta{display:flex;justify-content:space-between;font-size:0.6rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:5px;margin-top:4px;}
   .surah-skeleton{height:108px;border-radius:12px;}
 
-  .surah-header-card{margin:0 18px 16px;background:linear-gradient(135deg, color-mix(in srgb, var(--bg3) 90%, transparent), color-mix(in srgb, var(--bg2) 75%, transparent));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 10px 28px var(--shadow);}
+  .surah-header-card{margin:0 18px 16px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center;}
   .surah-header-ar{font-family:'UthmanNaskh',serif;font-size:2.2rem;color:var(--gold2);direction:rtl;margin-bottom:4px;}
-  .surah-header-en{font-family:'Playfair Display',serif;font-size:1rem;color:var(--ink);margin-bottom:2px;}
+  .surah-header-en{font-family:'Hind Siliguri',sans-serif;font-size:1rem;color:var(--ink);margin-bottom:2px;}
   .surah-header-bn{font-size:0.82rem;color:var(--ink3);margin-bottom:14px;}
   .info-table{width:100%;border-collapse:collapse;margin-bottom:10px;text-align:left;}
   .info-lbl{padding:4px 10px 4px 0;font-size:0.65rem;color:color-mix(in srgb, var(--gold) 75%, transparent);font-family:monospace;white-space:nowrap;}
@@ -1246,7 +1130,7 @@ const BASE_CSS = `
   .bookmark-key{font-family:monospace;font-size:0.62rem;color:var(--gold);margin-bottom:5px;letter-spacing:0.04em;}
   .bookmark-ar{font-family:'UthmanNaskh',serif;font-size:1.1rem;line-height:2;direction:rtl;text-align:right;color:var(--ink);margin-bottom:4px;}
   .bookmark-bn{font-size:0.78rem;color:var(--ink3);line-height:1.6;}
-  .bookmark-del{width:42px;background:rgba(239,68,68,0.04);border:none;border-left:1px solid var(--border);color:#ef4444;cursor:pointer;font-size:0.78rem;flex-shrink:0;}
+  .bookmark-del{width:42px;background:var(--danger-bg);border:none;border-left:1px solid var(--line);color:var(--danger);cursor:pointer;font-size:0.78rem;flex-shrink:0;}
 
   .ask-note{margin:0 18px 14px;font-size:0.75rem;color:var(--warn);background:var(--warn-bg);border:1px solid rgba(122,54,16,0.12);border-radius:8px;padding:8px 12px;line-height:1.6;}
   .ask-powered{margin:10px 18px 14px;font-size:0.68rem;color:var(--ink3);opacity:0.75;}
@@ -1254,18 +1138,18 @@ const BASE_CSS = `
   .answer-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--green2);margin-bottom:8px;}
   .answer-text{font-size:0.92rem;line-height:1.88;color:var(--ink);margin-bottom:10px;}
 
-  .about-hero{background:linear-gradient(135deg,var(--fill),color-mix(in srgb, var(--fill) 70%, black));padding:32px 22px;text-align:center;}
+  .about-hero{background:var(--surface2);border:1px solid var(--line);border-radius:18px;margin:8px 18px 4px;padding:32px 22px;text-align:center;}
   .about-ayah-ar{font-family:'UthmanNaskh',serif;font-size:1.5rem;line-height:2.2;direction:rtl;color:var(--gold2);margin-bottom:14px;}
-  .about-ayah-bn{font-size:0.88rem;line-height:1.85;color:rgba(255,255,255,0.9);margin-bottom:8px;}
+  .about-ayah-bn{font-size:0.88rem;line-height:1.85;color:var(--ink2);margin-bottom:8px;}
   .about-ref{font-family:monospace;font-size:0.65rem;color:color-mix(in srgb, var(--gold) 65%, transparent);}
   .about-section{padding:18px 18px 8px;border-bottom:1px solid var(--border);}
   .about-section:last-of-type{border-bottom:none;}
-  .about-section-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;font-style:italic;color:var(--green);margin-bottom:12px;}
+  .about-section-title{font-family:'Hind Siliguri',sans-serif;font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:12px;}
   .about-arabic{font-family:'UthmanNaskh',serif;font-size:1.45rem;line-height:2.2;direction:rtl;text-align:right;color:var(--ink);margin-bottom:10px;background:linear-gradient(135deg,color-mix(in srgb, var(--green) 6%, transparent),color-mix(in srgb, var(--gold) 6%, transparent));padding:14px 16px;border-radius:10px;border:1px solid var(--border);}
   .about-text{font-size:0.88rem;line-height:1.85;color:var(--ink2);}
   .about-dua-note{margin-top:10px;font-size:0.8rem;line-height:1.75;color:var(--ink3);font-style:italic;background:var(--bg2);border-radius:8px;padding:10px 14px;}
   .about-builder{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
-  .about-builder-link{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--green);text-decoration:none;}
+  .about-builder-link{font-family:'Hind Siliguri',sans-serif;font-size:1.1rem;font-weight:700;color:var(--green);text-decoration:none;}
   .about-builder-link:hover{color:var(--gold);text-decoration:underline;}
   .about-builder-link.secondary{font-size:0.8rem;font-family:'Hind Siliguri',sans-serif;font-weight:400;color:var(--ink3);}
   .about-sources{display:flex;flex-direction:column;gap:6px;}
@@ -1292,12 +1176,12 @@ const BASE_CSS = `
   .empty-state{text-align:center;padding:52px 24px;color:var(--ink3);}
   .empty-icon{font-size:2.4rem;margin-bottom:12px;}
   .empty-state p{font-size:0.85rem;line-height:1.7;}
-  .error-box{margin:0 18px;padding:10px 14px;background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;font-size:0.82rem;color:#7f1d1d;}
+  .error-box{margin:0 18px;padding:10px 14px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:12px;font-size:0.82rem;color:var(--danger);}
   .muted{color:var(--ink3);}
   .spin{display:inline-block;animation:spin 0.8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .btn-primary{font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;font-weight:600;padding:12px 20px;background:var(--fill);color:white;border:none;border-radius:10px;cursor:pointer;transition:background 0.15s;}
-  .btn-primary:hover{background:var(--green2);}
+  .btn-primary{font-family:'Hind Siliguri',sans-serif;font-size:0.88rem;font-weight:600;padding:12px 20px;background:var(--accent);color:var(--on-accent);border:none;border-radius:12px;cursor:pointer;transition:background 0.15s;}
+  .btn-primary:hover{background:var(--accent-hover);}
 
   /* ── UI upgrade pass ─────────────────────────────────────────── */
 
@@ -1313,16 +1197,11 @@ const BASE_CSS = `
   }
 
   /* Glass topnav on mobile — subtle depth instead of a flat block. */
-  .topnav{background:linear-gradient(180deg,var(--fill),color-mix(in srgb, var(--fill) 85%, black));backdrop-filter:saturate(140%) blur(6px);box-shadow:0 2px 10px var(--shadow);}
-  .sidebar{box-shadow:2px 0 14px var(--shadow);}
-  .sidebar-link{border-radius:0 20px 20px 0;margin-right:10px;}
-  .sidebar-link.active{box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--gold) 15%, transparent);}
 
   /* Page transition: content fades/slides in on every navigation so the
      app feels responsive rather than snapping between screens. */
-  .page{animation:pageIn 0.28s cubic-bezier(.22,.61,.36,1);}
+  
   @keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-  @media (prefers-reduced-motion: reduce){.page{animation:none;}}
 
   /* Consistent, visible focus rings for keyboard users (accessibility +
      a small security/UX win: never rely on outline:none without a
@@ -1332,14 +1211,14 @@ const BASE_CSS = `
   }
 
   /* Nicer buttons + cards: consistent easing, subtle lift, no jank. */
-  .nav-card, .surah-card, .search-ayah-row, .bookmark-row, .answer-card, .about-source-row{
+  .surah-card, .search-ayah-row, .bookmark-row, .answer-card, .about-source-row{
     transition:transform 0.18s cubic-bezier(.22,.61,.36,1), box-shadow 0.18s ease, border-color 0.15s ease;
   }
-  .nav-card:hover, .surah-card:hover{box-shadow:0 6px 18px var(--shadow);}
+  .surah-card:hover{box-shadow:0 6px 18px var(--shadow);}
   .answer-card{animation:answerIn 0.3s cubic-bezier(.22,.61,.36,1);}
   @keyframes answerIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 
-  .btn-primary, .search-go, .tab, .sidebar-link, .nav-btn{
+  .btn-primary, .search-go, .tab{
     transition:background 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
   }
   .btn-primary:active, .search-go:active{transform:scale(0.97);}
@@ -1366,37 +1245,10 @@ const BASE_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;600&family=Aref+Ruqaa:wght@400;700&display=swap');
 
   /* ── Hamburger (three lines <-> X) ───────────────────────────── */
-  .hamburger{
-    width:34px;height:34px;border-radius:50%;flex-shrink:0;
-    border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-    cursor:pointer;transition:background var(--dur-fast) ease;
-  }
-  .hamburger:hover{background:rgba(255,255,255,0.16);}
-  .hamburger span{width:15px;height:2px;background:#fff;border-radius:2px;
-    transition:transform var(--dur-base) var(--ease), opacity var(--dur-fast) ease;}
-  .hamburger-open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
-  .hamburger-open span:nth-child(2){opacity:0;transform:scaleX(0);}
-  .hamburger-open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
 
   /* ── Collapsible sidebar (desktop) ───────────────────────────── */
-  @media(min-width:768px){
-    .sidebar{transition:width var(--dur-base) var(--ease), opacity var(--dur-fast) ease, padding var(--dur-base) var(--ease);}
-    .app.sidebar-collapsed .sidebar{width:0!important;min-width:0;padding:0;border-right:none;opacity:0;overflow:hidden;}
-    .sidebar-link-text, .sidebar-ctrl-text{white-space:nowrap;}
-  }
 
   /* ── Mobile drawer + scrim ────────────────────────────────────── */
-  .sidebar-scrim{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:290;animation:scrimIn var(--dur-base) ease;}
-  @keyframes scrimIn{from{opacity:0;}to{opacity:1;}}
-  @media(max-width:767.98px){
-    .sidebar-mobile-open{
-      display:flex!important;position:fixed;top:0;left:0;bottom:0;width:78vw;max-width:300px;
-      z-index:300;box-shadow:2px 0 30px rgba(0,0,0,0.5);
-      animation:drawerIn var(--dur-base) var(--ease) both;
-    }
-    @keyframes drawerIn{from{transform:translateX(-100%);}to{transform:translateX(0);}}
-  }
 
   /* ── Persistent corner theme orb ─────────────────────────────── */
   .theme-orb-wrap{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:250;}
@@ -1442,28 +1294,12 @@ const BASE_CSS = `
   }
 
   /* ── Surah carousel (home page) ──────────────────────────────── */
-  .carousel-viewport{overflow:hidden;padding:2px 0 14px;width:100%;max-width:100%;min-width:0;}
-  .carousel{display:flex;gap:10px;padding:0 18px;width:max-content;will-change:transform;}
-  .carousel-card{
-    flex:0 0 132px;background:var(--bg3);border:1px solid var(--border);
-    border-radius:14px;padding:12px;text-align:center;cursor:pointer;
-    opacity:0;transform:translateY(10px) scale(0.96);
-    transition:transform var(--dur-base) var(--ease), box-shadow var(--dur-base) ease, border-color var(--dur-fast) ease, opacity var(--dur-base) var(--ease);
-  }
-  .carousel-card-in{opacity:1;transform:translateY(0) scale(1);}
-  .carousel-card:hover{border-color:var(--gold);box-shadow:0 8px 22px var(--shadow);transform:translateY(-3px);}
-  .carousel-skeleton{height:132px;flex:0 0 132px;}
-  .carousel-num{font-family:monospace;font-size:0.6rem;color:var(--gold);margin-bottom:4px;}
-  .carousel-ar{font-family:'UthmanNaskh',serif;font-size:1.15rem;color:var(--green);direction:rtl;margin-bottom:2px;}
-  .carousel-en{font-family:'Playfair Display',serif;font-size:0.72rem;color:var(--ink2);}
-  .carousel-bn{font-size:0.66rem;color:var(--ink3);margin-bottom:5px;}
-  .carousel-meta{display:flex;justify-content:space-between;font-size:0.58rem;color:var(--ink3);border-top:1px solid var(--border);padding-top:4px;}
 
   /* ── Play-surah + now-playing bar + per-ayah highlight ───────── */
   .surah-play-btn{
     display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
     margin-top:10px;padding:12px;border-radius:12px;border:none;cursor:pointer;
-    background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1209;font-weight:700;
+    background:var(--accent);color:var(--on-accent);font-weight:600;
     font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;
     transition:transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) ease;
     box-shadow:0 4px 14px var(--shadow);
@@ -1473,7 +1309,7 @@ const BASE_CSS = `
   .now-playing-bar{
     position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));left:0;right:0;z-index:150;
     display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:var(--fill);color:#fff;padding:10px 14px;
+    background:var(--surface2);color:var(--text);border-top:1px solid var(--line);padding:10px 14px;
     animation:nowPlayingIn var(--dur-base) var(--ease);
   }
   @media(min-width:768px){.now-playing-bar{position:sticky;bottom:0;}}
@@ -1483,8 +1319,8 @@ const BASE_CSS = `
   .now-playing-ayah{font-family:monospace;font-size:0.66rem;opacity:0.75;}
   .now-playing-progress{font-size:0.6rem;opacity:0.6;}
   .now-playing-controls{display:flex;gap:4px;flex-shrink:0;}
-  .now-playing-controls button{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;transition:background var(--dur-fast) ease;}
-  .now-playing-controls button:hover{background:rgba(255,255,255,0.2);}
+  .now-playing-controls button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;transition:background var(--dur-fast) ease;}
+  .now-playing-controls button:hover{background:var(--surface);}
   .now-playing-controls button:disabled{opacity:0.35;cursor:default;}
 
   .surah-ayah-row{transition:background var(--dur-base) ease, box-shadow var(--dur-base) ease;}
@@ -1496,21 +1332,21 @@ const BASE_CSS = `
   .readmode{position:fixed;inset:0;z-index:260;background:var(--bg);overflow-y:auto;animation:pageIn var(--dur-base) var(--ease);}
   .readmode-close{position:absolute;top:16px;right:16px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--ink2);cursor:pointer;font-size:0.9rem;}
 
-  .book-cover{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,var(--fill),color-mix(in srgb, var(--fill) 65%, black) 70%);}
+  .book-cover{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,var(--surface2),var(--bg) 70%);}
   .book-cover-frame{position:absolute;inset:24px;pointer-events:none;}
   .book-cover-frame svg{width:100%;height:100%;}
-  .book-cover-content{position:relative;text-align:center;color:#fff;max-width:340px;}
-  .book-cover-ar{font-family:'Aref Ruqaa',serif;font-size:3.4rem;color:var(--gold2);line-height:1.2;margin-bottom:8px;}
-  .book-cover-en{font-family:'Reem Kufi',sans-serif;font-size:1.3rem;color:#fff;opacity:0.92;}
-  .book-cover-bn{font-size:0.9rem;color:rgba(255,255,255,0.65);margin-top:2px;}
+  .book-cover-content{position:relative;text-align:center;color:var(--text);max-width:340px;}
+  .book-cover-ar{font-family:'Aref Ruqaa',serif;font-size:3.4rem;color:var(--accent);line-height:1.2;margin-bottom:8px;}
+  .book-cover-en{font-family:'Reem Kufi',sans-serif;font-size:1.3rem;color:var(--text);opacity:0.92;}
+  .book-cover-bn{font-size:0.9rem;color:var(--muted);margin-top:2px;}
   .book-cover-meta{display:flex;justify-content:center;gap:8px;font-size:0.72rem;color:color-mix(in srgb, var(--gold) 80%, transparent);margin:14px 0 26px;}
   .book-cover-dot{opacity:0.5;}
   .book-cover-begin{
     font-family:'Hind Siliguri',sans-serif;font-weight:600;font-size:0.88rem;
-    padding:12px 26px;border-radius:30px;border:1.5px solid var(--gold2);background:transparent;color:var(--gold2);
+    padding:12px 26px;border-radius:30px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);
     cursor:pointer;transition:background var(--dur-fast) ease, color var(--dur-fast) ease, transform var(--dur-fast) var(--ease);
   }
-  .book-cover-begin:hover{background:var(--gold2);color:#1a1209;transform:translateY(-2px);}
+  .book-cover-begin:hover{background:var(--accent);color:var(--on-accent);transform:translateY(-2px);}
 
   .readmode-reading{display:flex;flex-direction:column;height:100vh;height:100dvh;}
   .reader-topbar{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 56px 6px 16px;position:relative;flex-shrink:0;}
@@ -1521,19 +1357,19 @@ const BASE_CSS = `
   .reader-lang-toggle{position:relative;display:flex;gap:3px;flex-shrink:0;background:var(--bg2);border-radius:20px;padding:3px;isolation:isolate;}
   .reader-lang-thumb{
     position:absolute;top:3px;left:3px;bottom:3px;width:calc((100% - 6px) / 3);border-radius:16px;
-    background:linear-gradient(135deg, var(--gold), var(--gold2));
+    background:var(--accent);
     box-shadow:0 2px 8px var(--shadow);z-index:0;
     transform:translateX(calc(var(--active-index, 0) * 100%));
     transition:transform var(--dur-base) cubic-bezier(.34,1.56,.64,1);
   }
   .reader-lang-pill{position:relative;z-index:1;font-size:0.62rem;font-weight:700;padding:4px 10px;border-radius:16px;border:none;background:none;color:var(--ink3);cursor:pointer;transition:color var(--dur-fast) ease, transform var(--dur-fast) ease;}
   .reader-lang-pill:active{transform:scale(0.88);}
-  .reader-lang-pill.active{color:#fff;}
+  .reader-lang-pill.active{color:var(--on-accent);}
   @media (prefers-reduced-motion: reduce){.reader-lang-thumb{transition:none;}}
 
   .reader-play-btn{
     flex:1;min-width:0;padding:11px;border-radius:12px;border:none;cursor:pointer;
-    background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1209;font-weight:700;font-size:0.86rem;
+    background:var(--accent);color:var(--on-accent);font-weight:600;font-size:0.86rem;
     font-family:'Hind Siliguri',sans-serif;
   }
 
@@ -1563,9 +1399,6 @@ const BASE_CSS = `
   .reader-pager-count{font-size:0.72rem;color:var(--ink3);font-family:monospace;}
 
   /* ── Lang pill toggle (topnav) ───────────────────────────── */
-  .lang-nav-btn{position:relative;overflow:hidden;}
-  .lang-nav-btn{animation:none;}
-  .lang-nav-btn:active{transform:scale(0.9);}
 
   /* ── Share-card export (multi-template) ──────────────────────── */
   .share-style-row{display:flex;gap:8px;margin:4px 0 14px;overflow-x:auto;padding-bottom:2px;}
@@ -1579,27 +1412,25 @@ const BASE_CSS = `
 
   /* ── Glass-card primitive (used by Journey + future re-skin) ─── */
   .glass-card{
-    background:linear-gradient(135deg, color-mix(in srgb, var(--bg3) 70%, transparent), color-mix(in srgb, var(--bg2) 55%, transparent));
-    border:1px solid var(--border);border-radius:18px;
-    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-    box-shadow:0 8px 26px var(--shadow);
+    background:var(--surface);
+    border:1px solid var(--line);border-radius:18px;
   }
 
   /* ── Journey page ─────────────────────────────────────────────── */
   .journey-page{padding-bottom:8px;}
   .journey-hero{padding:22px 20px 26px;text-align:center;position:relative;overflow:hidden;}
-  .journey-hello{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold2);margin-bottom:4px;}
+  .journey-hello{font-family:'Hind Siliguri',sans-serif;font-size:1.5rem;color:var(--gold2);margin-bottom:4px;}
   .journey-sub{font-size:0.82rem;color:var(--ink3);max-width:320px;margin:0 auto 16px;line-height:1.5;}
   .journey-stats-row{display:flex;gap:10px;margin-bottom:20px;}
   .journey-stat{flex:1;padding:12px;text-align:center;}
   .journey-stat-label{display:flex;align-items:center;justify-content:center;gap:5px;font-size:0.68rem;color:var(--ink3);text-transform:uppercase;letter-spacing:0.04em;}
-  .journey-stat-num{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--ink);margin-top:4px;}
+  .journey-stat-num{font-family:'Hind Siliguri',sans-serif;font-size:1.6rem;color:var(--ink);margin-top:4px;}
   .journey-ring-wrap{position:relative;width:176px;height:176px;margin:0 auto;display:grid;place-items:center;}
   .journey-ring-glow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle, var(--gold) 0%, transparent 70%);opacity:0.18;filter:blur(18px);animation:orbPulse 4s ease-in-out infinite;}
   .ring-track{stroke:var(--border);}
   .ring-fill{stroke:var(--gold);transition:stroke-dashoffset 0.8s var(--ease);}
   .journey-ring-center{position:absolute;display:flex;flex-direction:column;align-items:center;}
-  .journey-ring-pct{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--ink);}
+  .journey-ring-pct{font-family:'Hind Siliguri',sans-serif;font-size:1.8rem;color:var(--ink);}
   .journey-ring-label{font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;}
 
   .pinned-verse-card{padding:16px;margin-bottom:10px;border-left:3px solid var(--gold);}
@@ -1628,19 +1459,12 @@ const BASE_CSS = `
   .info-lbl{font-size:0.6rem;letter-spacing:0.05em;text-transform:uppercase;white-space:normal;}
   .info-val{margin-top:2px;font-size:0.9rem;}
 
-  /* Elevate flat cards to the glass language, everywhere they appear */
-  .nav-card, .ayah-card, .bookmark-row{
-    background:linear-gradient(135deg, color-mix(in srgb, var(--bg3) 88%, transparent), color-mix(in srgb, var(--bg2) 72%, transparent))!important;
-    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    box-shadow:0 6px 18px var(--shadow);
-  }
-  .nav-card:active, .ayah-card:active{transform:scale(0.98);}
 
   /* Bigger, more comfortable touch targets on phones */
   @media(max-width:767.98px){
     .action-btn, .chip{padding:8px 15px;font-size:0.8rem;min-height:38px;display:inline-flex;align-items:center;}
     .action-btn-sm{padding:7px 14px;font-size:0.76rem;min-height:36px;display:inline-flex;align-items:center;}
-    .nav-btn, .hamburger{min-width:38px;min-height:38px;}
+    
     .surah-ayah-expand{padding:10px;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;}
     .tab{padding:8px 4px;min-height:52px;}
   }
@@ -1657,7 +1481,7 @@ const BASE_CSS = `
   .book-spine:hover, .book-spine:active{transform:translateY(-3px) rotate(-0.5deg);box-shadow:0 10px 24px var(--shadow);}
   .book-spine-num{font-family:monospace;font-size:0.62rem;color:var(--gold);}
   .book-spine-ar{font-family:'UthmanNaskh',serif;font-size:1.3rem;color:var(--green);direction:rtl;text-align:center;}
-  .book-spine-en{font-family:'Playfair Display',serif;font-size:0.7rem;color:var(--ink);text-align:center;}
+  .book-spine-en{font-family:'Hind Siliguri',sans-serif;font-size:0.7rem;color:var(--ink);text-align:center;}
   .book-spine-meta{font-size:0.58rem;color:var(--ink3);}
   .book-spine.skeleton::before{display:none;}
 
@@ -1677,8 +1501,8 @@ const BASE_CSS = `
     padding:10px 16px;border-radius:14px;max-width:calc(100% - 100px);}
   .book-shelf-3d-label-num{font-family:monospace;font-size:0.68rem;color:var(--gold);}
   .book-shelf-3d-label-ar{font-family:'UthmanNaskh',serif;font-size:1.15rem;color:var(--green);}
-  .book-shelf-3d-label-en{font-family:'Playfair Display',serif;font-size:0.72rem;color:var(--ink3);}
-  .book-shelf-3d-open-btn{margin-inline-start:6px;padding:7px 14px;border-radius:999px;border:none;background:var(--fill);color:#fff;font-size:0.7rem;font-weight:600;cursor:pointer;}
+  .book-shelf-3d-label-en{font-family:'Hind Siliguri',sans-serif;font-size:0.72rem;color:var(--ink3);}
+  .book-shelf-3d-open-btn{margin-inline-start:6px;padding:7px 14px;border-radius:999px;border:none;background:var(--accent);color:var(--on-accent);font-size:0.7rem;font-weight:600;cursor:pointer;}
   .book-shelf-3d-detail-bar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;
     padding:10px 14px;border-radius:14px;max-width:calc(100% - 32px);}
   .book-shelf-3d-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--ink);cursor:pointer;}
