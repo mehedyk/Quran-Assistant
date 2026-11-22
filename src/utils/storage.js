@@ -59,8 +59,11 @@ export function isFirstVisit() {
 }
 
 // ── Sidebar collapse state ───────────────────────────────────────
+// No saved choice yet -> collapsed, so a first visit shows the Figma layout
+// (top navigation only). Once the person toggles it, their choice sticks.
 export function getSavedSidebarState() {
-  return localStorage.getItem(KEYS.SIDEBAR) === "1";
+  const v = localStorage.getItem(KEYS.SIDEBAR);
+  return v === null ? true : v === "1";
 }
 
 export function saveSidebarState(collapsed) {
