@@ -1,17 +1,19 @@
 import { useEffect } from "react";
-import Logo from "./Logo.jsx";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import SidebarNav from "./SidebarNav.jsx";
 
 // Top navigation from the Figma "Navigation" frame:
 //   wordmark + descriptor · six primary links · Saved button · language.
-// Below 1024px the six links collapse into a menu drawer (hamburger),
-// which also carries every remaining destination (Saved, About), the
-// "How to use" guide and the language switch — so nothing the old sidebar
-// offered is lost at any width.
+// Navigation also lives in the collapsible sidebar (>=1024px, toggle button
+// in this header, state saved in localStorage as before). Below 1024px the
+// links collapse into a slide-over drawer (hamburger) holding the same panel:
+// every destination, "How to use" and the language switch.
 const PRIMARY_IDS = ["home", "search", "surah-browser", "book", "journey", "ask"];
 
 export default function SiteHeader({
   t, lang, items, activeId, navigate, onToggleLang, onHowTo,
   drawerOpen, onToggleDrawer, onCloseDrawer,
+  sidebarCollapsed, onToggleSidebar,
 }) {
   const primary = PRIMARY_IDS.map(id => items.find(i => i.id === id)).filter(Boolean);
 
@@ -59,6 +61,17 @@ export default function SiteHeader({
           <div className="header-actions">
             <button
               type="button"
+              className="sidebar-toggle"
+              onClick={onToggleSidebar}
+              aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar}
+              aria-expanded={!sidebarCollapsed}
+              aria-controls="app-sidebar"
+              title={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar}
+            >
+              {sidebarCollapsed ? <PanelLeftOpen size={20} strokeWidth={1.5} /> : <PanelLeftClose size={20} strokeWidth={1.5} />}
+            </button>
+            <button
+              type="button"
               className={`saved-btn ${activeId === "bookmarks" ? "active" : ""}`}
               aria-current={activeId === "bookmarks" ? "page" : undefined}
               onClick={() => navigate("bookmarks")}
@@ -77,34 +90,11 @@ export default function SiteHeader({
       {drawerOpen && <div className="drawer-scrim" onClick={onCloseDrawer} />}
       {drawerOpen && (
         <aside className="drawer" id="site-drawer" aria-label="Menu">
-          <div className="drawer-brand">
-            <button type="button" className="drawer-logo-btn" onClick={() => navigate("home")}>
-              <Logo size={38} />
-              <span className="brand-wordmark">هادي</span>
-            </button>
-            <div className="drawer-tagline">{t.appTagline}</div>
-          </div>
-          <nav className="drawer-nav">
-            {items.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={`drawer-link ${activeId === item.id ? "active" : ""}`}
-                onClick={() => navigate(item.id)}
-              >
-                <span className="drawer-link-icon"><item.icon size={18} /></span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="drawer-footer">
-            <button type="button" className="drawer-ctrl" onClick={() => { onCloseDrawer(); onHowTo(); }}>
-              <span className="drawer-ctrl-mark">?</span> {t.howToUse}
-            </button>
-            <button type="button" className="drawer-ctrl" onClick={onToggleLang}>
-              <span className="drawer-ctrl-mark">{lang === "bn" ? "EN" : "বাং"}</span> Language
-            </button>
-          </div>
+          <SidebarNav
+            t={t} lang={lang} items={items} activeId={activeId} navigate={navigate}
+            onToggleLang={onToggleLang}
+            onHowTo={() => { onCloseDrawer(); onHowTo(); }}
+          />
         </aside>
       )}
     </>
