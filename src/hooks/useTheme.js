@@ -22,7 +22,12 @@ export function useTheme() {
     Object.entries(t).forEach(([k, v]) => {
       if (k.startsWith("--")) root.style.setProperty(k, v);
     });
-    document.documentElement.setAttribute("data-theme", theme);
+    root.setAttribute("data-theme", theme);
+    // Native controls (scrollbars, form widgets, autofill) follow the
+    // theme's light/dark nature, and the mobile browser chrome matches
+    // the page background.
+    root.style.colorScheme = t.isDark ? "dark" : "light";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t["--bg"]);
   }, [theme]);
 
   // Follows WAQT_ORDER (dawn -> night), wrapping back to Fajr after Isha.
