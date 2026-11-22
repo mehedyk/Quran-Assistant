@@ -7,118 +7,201 @@ export const TRANSLATION_BN = 161;  // মুহিউদ্দীন খান
 export const TOTAL_AYAT     = 6236;
 
 // ── Themes: the 5 waqt (prayer-time) palette ─────────────────────
-// Adopted from the "Hadi Waqt Themes" / "Neo-Islamic Twilight" design
-// package: each waqt supplies surface/primary/secondary/accent roles,
-// mapped here as surface->--bg, accent->--ink (the high-contrast
-// reading color), secondary->--gold (vivid highlight), primary->--green
-// (secondary brand accent). Dhuhr and Asr are genuinely LIGHT themes —
-// noon and afternoon are the brightest parts of the day — so the arc
-// has real light/dark contrast as you sweep across it.
+// Source of truth: the "Al Hadi remake" Figma file. Each waqt has its
+// own frame; layout is identical across all five, only these colour
+// roles change:
+//   fajr    -> dark teal / green      dhuhr -> light
+//   asr     -> warm beige / cream     maghrib -> dark purple
+//   isha    -> dark navy / blue
 //
-// Exception: Isha's own "secondary" (#1e293b) sits too close to its
-// near-black surface to work as an interactive accent, so Isha borrows
-// the design system's own Soft Gold / Celestial Teal pair instead of
-// its literal spec values for --gold/--green.
+// Two groups of CSS variables are set on <html> by useTheme.js:
+//   1. The semantic Figma tokens  (--surface, --line, --text, --muted,
+//      --accent, --on-accent, ...) which the redesigned shell and Home
+//      page use directly.
+//   2. The LEGACY names (--bg2, --bg3, --ink*, --gold*, --green*, --fill,
+//      --border) remapped onto the same palette, so every pre-existing
+//      component (Read Mode, Journey, Share card modal, Ask, About ...)
+//      re-themes without being rewritten.
 export const THEMES = {
   fajr: {
     name: "ফজর",
     nameEn: "Fajr",
-    "--bg":        "#0c142a",
-    "--bg2":       "#121b35",
-    "--bg3":       "#182240",
-    "--ink":       "#eafffb",
-    "--ink2":      "#b8ece2",
-    "--ink3":      "#7fa8a0",
-    "--gold":      "#6fffe8",
-    "--gold2":     "#9dffef",
-    "--green":     "#4dd8c4",
-    "--green2":    "#7ee8d8",
-    "--fill":      "#0c142a",
-    "--border":    "rgba(111,255,232,0.18)",
-    "--shadow":    "rgba(0,0,0,0.50)",
+    tagline: "ভোরের প্রশান্তি",
+    taglineEn: "Dawn calm",
+    isDark: true,
+    // ── Figma design tokens (Al Hadi remake.fig, "Fajr" frame) ──
+    "--bg":        "#101f26",   // page background
+    "--surface":   "#172b33",   // panels, cards, nav pill, inputs' container
+    "--surface2":  "#1e363f",   // raised: chips, active card, secondary buttons
+    "--line":      "#30464c",   // borders and dividers
+    "--text":      "#f1f0e7",   // headings and primary text
+    "--muted":     "#aabbb9",   // secondary text
+    "--accent":    "#b8dcca",   // primary buttons, active states, links
+    "--on-accent": "#102a26",   // text/icons on --accent
+    "--accent-hover": "#c3e0d0",
+    "--ornament":  "#d6be8b",   // fine decorative detail (arch rule, caption)
+    "--danger":    "#f4a29b",
+    "--danger-bg": "rgba(244,162,155,0.12)",
+    // ── Legacy names, remapped so every existing component re-themes ──
+    "--bg2":       "#1e363f",
+    "--bg3":       "#172b33",
+    "--ink":       "#f1f0e7",
+    "--ink2":      "#d1d8d2",
+    "--ink3":      "#aabbb9",
+    "--gold":      "#b8dcca",
+    "--gold2":     "#b8dcca",
+    "--green":     "#b8dcca",
+    "--green2":    "#c3e0d0",
+    "--fill":      "#b8dcca",
+    "--border":    "#30464c",
+    "--shadow":    "rgba(0,0,0,0.45)",
     "--warn":      "#f0a868",
-    "--warn-bg":   "rgba(240,168,104,0.08)",
-    "--pattern":   "rgba(111,255,232,0.04)",
+    "--warn-bg":   "rgba(240,168,104,0.1)",
+    "--pattern":   "rgba(184,220,202,0.05)",
   },
   dhuhr: {
     name: "যুহর",
     nameEn: "Dhuhr",
-    "--bg":        "#f4f4f4",
-    "--bg2":       "#e2e2e2",
+    tagline: "দিনের স্বচ্ছতা",
+    taglineEn: "Midday clarity",
+    isDark: false,
+    // ── Figma design tokens (Al Hadi remake.fig, "Dhuhr" frame) ──
+    "--bg":        "#f6f8f4",   // page background
+    "--surface":   "#ffffff",   // panels, cards, nav pill, inputs' container
+    "--surface2":  "#e8eee8",   // raised: chips, active card, secondary buttons
+    "--line":      "#d5dfd9",   // borders and dividers
+    "--text":      "#1f3439",   // headings and primary text
+    "--muted":     "#5d7277",   // secondary text
+    "--accent":    "#2c697a",   // primary buttons, active states, links
+    "--on-accent": "#ffffff",   // text/icons on --accent
+    "--accent-hover": "#295e6d",
+    "--ornament":  "#796234",   // fine decorative detail (arch rule, caption)
+    "--danger":    "#b3261e",
+    "--danger-bg": "rgba(179,38,30,0.1)",
+    // ── Legacy names, remapped so every existing component re-themes ──
+    "--bg2":       "#e8eee8",
     "--bg3":       "#ffffff",
-    "--ink":       "#0a1440",
-    "--ink2":      "#0032e7",
-    "--ink3":      "#3b5bdb",
-    "--gold":      "#0032e7",
-    "--gold2":     "#3b5bdb",
-    "--green":     "#4338ca",
-    "--green2":    "#6d5ce0",
-    "--fill":      "#0032e7",
-    "--border":    "rgba(0,50,231,0.18)",
-    "--shadow":    "rgba(0,50,231,0.10)",
+    "--ink":       "#1f3439",
+    "--ink2":      "#3b5055",
+    "--ink3":      "#5d7277",
+    "--gold":      "#2c697a",
+    "--gold2":     "#2c697a",
+    "--green":     "#2c697a",
+    "--green2":    "#295e6d",
+    "--fill":      "#2c697a",
+    "--border":    "#d5dfd9",
+    "--shadow":    "rgba(31,52,57,0.1)",
     "--warn":      "#b91c1c",
-    "--warn-bg":   "#fff1e6",
-    "--pattern":   "rgba(0,50,231,0.05)",
+    "--warn-bg":   "rgba(185,28,28,0.09)",
+    "--pattern":   "rgba(44,105,122,0.06)",
   },
   asr: {
     name: "আসর",
     nameEn: "Asr",
-    "--bg":        "#fdf3ec",
-    "--bg2":       "#f7e5d9",
-    "--bg3":       "#fffaf6",
-    "--ink":       "#3d1400",
-    "--ink2":      "#812b00",
-    "--ink3":      "#a8481c",
-    "--gold":      "#812b00",
-    "--gold2":     "#a8481c",
-    "--green":     "#5c1c00",
-    "--green2":    "#8a3410",
-    "--fill":      "#812b00",
-    "--border":    "rgba(129,43,0,0.22)",
-    "--shadow":    "rgba(61,20,0,0.14)",
+    tagline: "বিকেলের উষ্ণতা",
+    taglineEn: "Afternoon warmth",
+    isDark: false,
+    // ── Figma design tokens (Al Hadi remake.fig, "Asr" frame) ──
+    "--bg":        "#fbf3e5",   // page background
+    "--surface":   "#fffaf1",   // panels, cards, nav pill, inputs' container
+    "--surface2":  "#f1e4cf",   // raised: chips, active card, secondary buttons
+    "--line":      "#deceb5",   // borders and dividers
+    "--text":      "#473829",   // headings and primary text
+    "--muted":     "#7a6852",   // secondary text
+    "--accent":    "#885c37",   // primary buttons, active states, links
+    "--on-accent": "#fff9ef",   // text/icons on --accent
+    "--accent-hover": "#7b5534",
+    "--ornament":  "#8b632b",   // fine decorative detail (arch rule, caption)
+    "--danger":    "#b3261e",
+    "--danger-bg": "rgba(179,38,30,0.1)",
+    // ── Legacy names, remapped so every existing component re-themes ──
+    "--bg2":       "#f1e4cf",
+    "--bg3":       "#fffaf1",
+    "--ink":       "#473829",
+    "--ink2":      "#5e4e3b",
+    "--ink3":      "#7a6852",
+    "--gold":      "#885c37",
+    "--gold2":     "#885c37",
+    "--green":     "#885c37",
+    "--green2":    "#7b5534",
+    "--fill":      "#885c37",
+    "--border":    "#deceb5",
+    "--shadow":    "rgba(71,56,41,0.1)",
     "--warn":      "#7c2d12",
-    "--warn-bg":   "#fff0e6",
-    "--pattern":   "rgba(129,43,0,0.06)",
+    "--warn-bg":   "rgba(124,45,18,0.09)",
+    "--pattern":   "rgba(136,92,55,0.06)",
   },
   maghrib: {
     name: "মাগরিব",
     nameEn: "Maghrib",
-    "--bg":        "#320b41",
-    "--bg2":       "#3e1050",
-    "--bg3":       "#4a1560",
-    "--ink":       "#fdf2fb",
-    "--ink2":      "#f0c3ed",
-    "--ink3":      "#cf9fca",
-    "--gold":      "#f0c3ed",
-    "--gold2":     "#f6d9f4",
-    "--green":     "#c026d3",
-    "--green2":    "#dd6ae5",
-    "--fill":      "#320b41",
-    "--border":    "rgba(240,195,237,0.22)",
-    "--shadow":    "rgba(20,5,25,0.50)",
-    "--warn":      "#fdba74",
-    "--warn-bg":   "rgba(253,186,116,0.10)",
-    "--pattern":   "rgba(240,195,237,0.06)",
+    tagline: "গোধূলির মায়া",
+    taglineEn: "Twilight charm",
+    isDark: true,
+    // ── Figma design tokens (Al Hadi remake.fig, "Maghrib" frame) ──
+    "--bg":        "#281d32",   // page background
+    "--surface":   "#33253e",   // panels, cards, nav pill, inputs' container
+    "--surface2":  "#44304e",   // raised: chips, active card, secondary buttons
+    "--line":      "#5a405e",   // borders and dividers
+    "--text":      "#fff0e9",   // headings and primary text
+    "--muted":     "#c7afc7",   // secondary text
+    "--accent":    "#eeb2ad",   // primary buttons, active states, links
+    "--on-accent": "#392233",   // text/icons on --accent
+    "--accent-hover": "#f1beb9",
+    "--ornament":  "#dab58e",   // fine decorative detail (arch rule, caption)
+    "--danger":    "#f4a29b",
+    "--danger-bg": "rgba(244,162,155,0.12)",
+    // ── Legacy names, remapped so every existing component re-themes ──
+    "--bg2":       "#44304e",
+    "--bg3":       "#33253e",
+    "--ink":       "#fff0e9",
+    "--ink2":      "#e6d3da",
+    "--ink3":      "#c7afc7",
+    "--gold":      "#eeb2ad",
+    "--gold2":     "#eeb2ad",
+    "--green":     "#eeb2ad",
+    "--green2":    "#f1beb9",
+    "--fill":      "#eeb2ad",
+    "--border":    "#5a405e",
+    "--shadow":    "rgba(0,0,0,0.45)",
+    "--warn":      "#f0a868",
+    "--warn-bg":   "rgba(240,168,104,0.1)",
+    "--pattern":   "rgba(238,178,173,0.05)",
   },
   isha: {
     name: "এশা",
     nameEn: "Isha",
-    "--bg":        "#1c2224",
-    "--bg2":       "#293234",
-    "--bg3":       "#333d40",
-    "--ink":       "#f2f6f2",
-    "--ink2":      "#c5dac5",
-    "--ink3":      "#8fa88f",
-    "--gold":      "#c5dac5",
-    "--gold2":     "#d9e8d9",
-    "--green":     "#4f7a6b",
-    "--green2":    "#7fae9a",
-    "--fill":      "#293234",
-    "--border":    "rgba(197,218,197,0.18)",
-    "--shadow":    "rgba(0,0,0,0.60)",
+    tagline: "রাতের নীরবতা",
+    taglineEn: "Night stillness",
+    isDark: true,
+    // ── Figma design tokens (Al Hadi remake.fig, "Isha" frame) ──
+    "--bg":        "#101524",   // page background
+    "--surface":   "#192035",   // panels, cards, nav pill, inputs' container
+    "--surface2":  "#232c46",   // raised: chips, active card, secondary buttons
+    "--line":      "#35405c",   // borders and dividers
+    "--text":      "#eff0fb",   // headings and primary text
+    "--muted":     "#acb6d0",   // secondary text
+    "--accent":    "#bac6f0",   // primary buttons, active states, links
+    "--on-accent": "#171f39",   // text/icons on --accent
+    "--accent-hover": "#c5cef2",
+    "--ornament":  "#cdbd92",   // fine decorative detail (arch rule, caption)
+    "--danger":    "#f4a29b",
+    "--danger-bg": "rgba(244,162,155,0.12)",
+    // ── Legacy names, remapped so every existing component re-themes ──
+    "--bg2":       "#232c46",
+    "--bg3":       "#192035",
+    "--ink":       "#eff0fb",
+    "--ink2":      "#d1d6e8",
+    "--ink3":      "#acb6d0",
+    "--gold":      "#bac6f0",
+    "--gold2":     "#bac6f0",
+    "--green":     "#bac6f0",
+    "--green2":    "#c5cef2",
+    "--fill":      "#bac6f0",
+    "--border":    "#35405c",
+    "--shadow":    "rgba(0,0,0,0.45)",
     "--warn":      "#f0a868",
-    "--warn-bg":   "rgba(240,168,104,0.08)",
-    "--pattern":   "rgba(197,218,197,0.04)",
+    "--warn-bg":   "rgba(240,168,104,0.1)",
+    "--pattern":   "rgba(186,198,240,0.05)",
   },
 };
 
@@ -249,4 +332,16 @@ export function getAyahOfTheDay() {
     remaining -= SURAH_LENGTHS[s];
   }
   return { surah: 2, ayah: 255 };
+}
+
+// ── Digits ───────────────────────────────────────────────────────
+// The Figma shows Bengali numerals (২:২৫৫, ১১৪টি সূরা). Display helpers
+// convert to the active UI language; lookups accept either numeral set.
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+export function localizeDigits(value, lang) {
+  const str = String(value);
+  return lang === "bn" ? str.replace(/\d/g, d => BN_DIGITS[d]) : str;
+}
+export function normalizeDigits(str) {
+  return String(str).replace(/[০-৯]/g, d => String(BN_DIGITS.indexOf(d)));
 }
