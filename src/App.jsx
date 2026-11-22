@@ -14,6 +14,7 @@ import {
 } from "./utils/storage.js";
 import ThemeOrb from "./components/layout/ThemeOrb.jsx";
 import SiteHeader from "./components/layout/SiteHeader.jsx";
+import SidebarNav from "./components/layout/SidebarNav.jsx";
 import PrayerThemeTabs from "./components/layout/PrayerThemeTabs.jsx";
 import SiteFooter from "./components/layout/SiteFooter.jsx";
 import HeroSection from "./components/home/HeroSection.jsx";
@@ -371,13 +372,25 @@ export default function App() {
       <ThemeOrb theme={theme} themeMeta={themeMeta} themeList={themeList}
         selectTheme={selectTheme} label={t.theme} />
 
-      <div className="app">
+      <div className={`app ${sidebar.collapsed ? "sidebar-collapsed" : ""}`}>
+        {/* Collapsible desktop sidebar (>=1024px). Hidden entirely when collapsed;
+            the header toggle flips it and the choice is remembered. */}
+        <aside className="sidebar" id="app-sidebar" aria-label="Sidebar" aria-hidden={sidebar.collapsed}>
+          <SidebarNav
+            t={t} lang={lang} items={NAV_ITEMS} activeId={activeNav} navigate={navigate}
+            onToggleLang={toggleLang} onHowTo={() => setShowHowTo(true)}
+          />
+        </aside>
+
+        <div className="app-col">
         <SiteHeader
           t={t} lang={lang} items={NAV_ITEMS} activeId={activeNav}
           navigate={navigate} onToggleLang={toggleLang} onHowTo={() => setShowHowTo(true)}
           drawerOpen={sidebar.mobileOpen}
           onToggleDrawer={sidebar.toggleMobile}
           onCloseDrawer={sidebar.closeMobile}
+          sidebarCollapsed={sidebar.collapsed}
+          onToggleSidebar={sidebar.toggle}
         />
         <PrayerThemeTabs t={t} lang={lang} theme={theme} themeList={themeList} selectTheme={selectTheme} />
 
@@ -408,6 +421,7 @@ export default function App() {
         </div>
 
         <SiteFooter t={t} navigate={navigate} onHowTo={() => setShowHowTo(true)} />
+        </div>
       </div>
     </LangContext.Provider>
   );
@@ -1245,10 +1259,6 @@ const BASE_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;600&family=Aref+Ruqaa:wght@400;700&display=swap');
 
   /* ── Hamburger (three lines <-> X) ───────────────────────────── */
-
-  /* ── Collapsible sidebar (desktop) ───────────────────────────── */
-
-  /* ── Mobile drawer + scrim ────────────────────────────────────── */
 
   /* ── Persistent corner theme orb ─────────────────────────────── */
   .theme-orb-wrap{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:250;}
